@@ -73,10 +73,13 @@ q = [ 0.0196, -0.2977,  1   ;
       0.0581,  0.0255,  1   ;
       0.4144, -0.3264,  1   ];
   
-solutions = bnb(p, q, 1/40 * pi);  
+solutions = bnb(p, q, 1/32 * pi);  
 for s = 1: size(solutions,2)
-    fprintf("Solution %d: [%d %d %d], score: %d\n R:", s, solutions(s).centre, solutions(s).score);
+    fprintf("Solution %d: [%d %d %d], sigma: %d pi, score: %d\n R:", s, solutions(s).centre, solutions(s).sigma/pi, solutions(s).score);
     disp(aa2mat(solutions(s).centre));
+    
+    % Plot solution matrices
+    figure, imagesc(solutions(s).edges);
 end
 
 % TODOs: 
