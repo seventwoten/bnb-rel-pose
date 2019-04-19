@@ -74,7 +74,9 @@ q = [ 0.0196, -0.2977,  1   ;
       0.4144, -0.3264,  1   ];
 
 tic;
-solutions = bnb(p, q, 1/32 * pi);  
+
+init_blk = cube([0,0,0], pi, []);
+solutions = bnb(init_blk, p, q, 1/32 * pi);  
 toc;
 
 for s = 1: size(solutions,2)
