@@ -11,14 +11,11 @@ function [solutions] = bnb(p, q, thres_stop)
     Nq = size(q, 1);
     max_matches = min(Np, Nq);
 
-    [centres, sigma] = subdivide([0,0,0], pi);
-    e_max = 0;
-    
     queue = cell(1,max_matches); % Set up one block queue per no. of matches 
-    for c = 1: size(centres, 1)
-        queue{max_matches} = [queue{max_matches} block(centres(c, :), sigma, max_matches)]; 
-    end
+    init_blk = block([0,0,0], pi, max_matches);
+    queue{max_matches} = init_blk.subdivide(); 
 
+    e_max = 0;
     i = max_matches;
     solutions = [];
 
@@ -32,41 +29,40 @@ function [solutions] = bnb(p, q, thres_stop)
     iter = 1;
     while ~isempty(i)
         % dequeue block from front of queue with largest max_matches 
-        cen = queue{i}(1).centre; 
-        sigma = queue{i}(1).sigma;
+        blk = queue{i}(1);
         queue{i}(1) = [];
         
         % Given rotation represented by block centre, find angles(Rp, q) 
-        R  = aa2mat(cen);
+        R  = aa2mat(blk.centre);
         Rp = (R * p')';
 
         a = angles(Rp, q);
         
-        fprintf("\nIteration %d   sigma: %d pi e_max = %d\n", iter, sigma/pi, e_max);
+        fprintf("Iteration %d   sigma: %d pi e_max = %d\n", iter, blk.sigma/pi, e_max);
         
         % Compute block lower bound with stopping threshold
         edges_tight = a < thres_stop;
         C(2:Np+1, 1+Np+1 : 1+Np+Nq) = edges_tight;
         G = digraph(C);
-        m_lower = maxflow(G, 1, Np+Nq+2);
-        fprintf("Lower bound: %d\n", m_lower);
+        blk.LB = maxflow(G, 1, Np+Nq+2);
+        fprintf("Lower bound: %d\n", blk.LB);
         
         % Compute block upper bound at sqrt(3)-sigma threshold
-        thres = sqrt(3) * sigma;
+        thres = sqrt(3) * blk.sigma;
         if thres > thres_stop
             edges = a < thres;
             C(2:Np+1, 1+Np+1 : 1+Np+Nq) = edges;
             G = digraph(C);
-            m_upper = maxflow(G, 1, Np+Nq+2);
-            fprintf("Upper bound: %d \t", m_upper);
+            blk.UB = maxflow(G, 1, Np+Nq+2);
+            fprintf("Upper bound: %d \t", blk.UB);
         else
-            m_upper = m_lower;
+            blk.UB = blk.LB;
         end
         
         % Update e_max
-        if m_lower > e_max
-            fprintf("Replaced e_max %d with %d.\n", e_max, m_lower);
-            e_max = m_lower;
+        if blk.LB > e_max
+            fprintf("Replaced e_max %d with %d.\n", e_max, blk.LB);
+            e_max = blk.LB;
             
             % After updating e_max, check queue for discardable blocks
             % (parentUB < e_max)
@@ -76,23 +72,20 @@ function [solutions] = bnb(p, q, thres_stop)
         end
         
         % Discard this block, or subdivide/terminate
-        if m_upper > 0 && m_upper >= e_max
+        if blk.UB > 0 && blk.UB >= e_max
             if thres > thres_stop
                 fprintf("Continue!\n");
-                [centres, sigma] = subdivide(cen, sigma);
-                for c = 1: size(centres, 1)
-                    queue{m_upper} = [queue{m_upper} block(centres(c, :), sigma, m_upper)];
-                end
+                queue{blk.UB} = [queue{blk.UB} blk.subdivide()];
             else
-                fprintf("Solution at stopping resolution: [%d %d %d], score: %d-%d, sigma: %d\n", cen, m_lower, m_upper, sigma);
-                solutions = [solutions solution(cen, sigma, m_lower, edges_tight)];
+                fprintf("Solution at stopping resolution: [%d %d %d], score: %d-%d, sigma: %d\n", blk.centre, blk.LB, blk.UB, blk.sigma);
+                solutions = [solutions solution(blk.centre, blk.sigma, blk.LB, edges_tight)];
             end
         else
             fprintf("Discard!\n");
         end
         
         i = find(~cellfun(@isempty,queue), 1, 'last');
-        fprintf("next i: %d\n", i);
+        fprintf("next i: %d\n\n", i);
         iter = iter + 1;
         
     end
