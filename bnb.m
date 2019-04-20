@@ -54,7 +54,7 @@ function [solutions] = bnb(init_blk, p, q, thres_stop)
                 queue{blk.UB} = [queue{blk.UB} blk.subdivide()];
             else
                 fprintf("Solution at stopping resolution: [%d %d %d], score: %d-%d, sigma: %d\n", blk.centre, blk.LB, blk.UB, blk.sigma);
-                solutions = [solutions solution(blk.centre, blk.sigma, blk.LB, blk.edges_tight)];
+                solutions = [solutions solution(blk.centre, blk.sigma, blk.LB, blk.edges_stop)];
             end
         else
             fprintf("Discard!\n");
