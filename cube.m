@@ -1,6 +1,7 @@
 classdef cube < block
     %CUBE 3D block
     properties
+        thres
         angleMat
         capacityMat
         edges_tight
@@ -15,6 +16,7 @@ classdef cube < block
                 p = [];
             end
             obj = obj@block(c, s, p);
+            obj.thres = sqrt(3) * obj.sigma;
         end
     
         function [subblocks] = subdivide(obj)
@@ -54,9 +56,8 @@ classdef cube < block
         function [obj] = setUpperBound(obj, thres_stop)
             %SETUPPERBOUND Set upper bound at sqrt(3) * sigma threshold
             assert(~isempty(obj.angleMat), 'Context was not set');
-            thres = sqrt(3) * obj.sigma;
-            if thres > thres_stop
-                edges = obj.angleMat < thres;
+            if obj.thres > thres_stop
+                edges = obj.angleMat < obj.thres;
                 obj.UB = obj.getMaxBipartiteMatching(edges);
             else
                 obj.UB = obj.LB;

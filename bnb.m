@@ -49,7 +49,7 @@ function [solutions] = bnb(init_blk, p, q, thres_stop)
         
         % Discard this block, or subdivide/terminate
         if blk.UB > 0 && blk.UB >= e_max
-            if sqrt(3) * blk.sigma > thres_stop
+            if blk.thres > thres_stop
                 fprintf("Continue!\n");
                 queue{blk.UB} = [queue{blk.UB} blk.subdivide()];
             else
