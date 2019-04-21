@@ -1,4 +1,4 @@
-function [solutions] = bnb(init_blk, p, q, thres_stop)
+function [solutions] = bnb(initList, context, thres_stop)
 %BNB Finds camera rotation given two sets of image points 
 %   p and q are N x 3 arrays (image points as 3D vectors).
 %   thres_stop is the stopping threshold in radians.
@@ -7,10 +7,10 @@ function [solutions] = bnb(init_blk, p, q, thres_stop)
 %   The threshold shrinks until thres_stop as Bnb progresses.)
 
     % Set up variables
-    max_matches = min(size(p, 1), size(q, 1));
+    max_matches = min(size(context.p, 1), size(context.q, 1));
 
     queue = cell(1,max_matches); % Set up one block queue per no. of matches 
-    queue{max_matches} = init_blk.subdivide(); 
+    queue{max_matches} = initList;
 
     e_max = 0;
     i = max_matches;
@@ -22,8 +22,8 @@ function [solutions] = bnb(init_blk, p, q, thres_stop)
         blk = queue{i}(1);
         queue{i}(1) = [];
         
-        % Given rotation represented by block centre, find angles(Rp, q) 
-        blk = blk.setContext(p, q);
+        % Do any necessary computation before checking bounds
+        blk = blk.setContext(context);
         
         fprintf("Iteration %d   sigma: %d pi e_max = %d\n", iter, blk.sigma/pi, e_max);
         

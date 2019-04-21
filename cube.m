@@ -36,11 +36,12 @@ classdef cube < block
             
         end
         
-        function [obj] = setContext(obj, p, q)
+        function [obj] = setContext(obj, context)
             %SETCONTEXT Necessary computation before checking bounds
+            % Given rotation at block centre, find angles(Rp, q)
             R  = aa2mat(obj.centre);
-            Rp = (R * p')';
-            obj.angleMat = angles(Rp, q);
+            Rp = (R * context.p')';
+            obj.angleMat = angles(Rp, context.q);
         end
         
         function [obj] = setLowerBound(obj, thres_stop)
