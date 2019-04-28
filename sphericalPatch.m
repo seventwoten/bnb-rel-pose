@@ -51,9 +51,7 @@ classdef sphericalPatch < block
             %SETLOWERBOUND Set lower bound at stopping threshold
             assert(~isempty(obj.angleMat1) & ~isempty(obj.angleMat2), 'Context was not set');
             positiveRange = pi/2 + thres_stop;
-            negativeRange = pi/2 - thres_stop;
-            obj.edges_stop = ((obj.angleMat1 < positiveRange) & (obj.angleMat2 < positiveRange))| ... 
-                             ((obj.angleMat1 > negativeRange) & (obj.angleMat2 > negativeRange));
+            obj.edges_stop = ((obj.angleMat1 < positiveRange) & (obj.angleMat2 < positiveRange));
             obj.LB = obj.getMaxBipartiteMatching(obj.edges_stop);
         end
         
@@ -61,9 +59,7 @@ classdef sphericalPatch < block
             assert(~isempty(obj.angleMat1) & ~isempty(obj.angleMat2), 'Context was not set');
             if obj.thres > thres_stop
                 positiveRange = pi/2 + obj.thres;
-                negativeRange = pi/2 - obj.thres;
-                edges = ((obj.angleMat1 < positiveRange) & (obj.angleMat2 < positiveRange))| ...
-                        ((obj.angleMat1 > negativeRange) & (obj.angleMat2 > negativeRange));
+                edges = ((obj.angleMat1 < positiveRange) & (obj.angleMat2 < positiveRange));
                 obj.UB = obj.getMaxBipartiteMatching(edges);
             else
                 obj.UB = obj.LB;

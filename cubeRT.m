@@ -36,7 +36,7 @@ classdef cubeRT < cube
             y = y_num ./ y_den;
 
             x = obj.pairwiseCross(Rp, context.q);
-            z = cross(y, x);
+            z = cross(x, y);
 
             cos_beta = cos(asin(sin_beta));
 
