@@ -87,8 +87,11 @@ c = cubeRT(axis_angle, R_half_len, []);
 c = c.setContext(context(p,q), delta);
     
 % Start T search within initial patch (centred at ground truth)
-init_blk = sphericalPatch(t_long_lat, t_half_len, []);
-solutions = bnb(init_blk.subdivide(), contextT(p, q, c.n1, c.n2), thres_stop);  
+% init_blk = sphericalPatch(t_long_lat, t_half_len, []);
+% solutions = bnb(init_blk.subdivide(), contextT(p, q, c.n1, c.n2), thres_stop);  
+
+st = StereoT(p, q, c.n1, c.n2, thres_stop, t_long_lat, t_half_len);
+[st, solutions] = st.findSolutions();
 
 toc;
 

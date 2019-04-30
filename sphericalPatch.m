@@ -15,7 +15,11 @@ classdef sphericalPatch < block
                 p = [];
             end
             obj = obj@block(c, s, p);
-            obj.thres = acos(cos(s)^2);
+            
+            if nargin == 3
+                obj.thres = acos(cos(s)^2);
+                obj.centre_xyz = obj.spherical2Cartesian(1, c(1), c(2));
+            end
         end
         
         function [subblocks] = subdivide(obj)
@@ -33,40 +37,6 @@ classdef sphericalPatch < block
             end
             
         end
-        
-        function [obj] = setContext(obj, context)
-            obj.angleMat1 = obj.angles(context.n1);
-            obj.angleMat2 = obj.angles(context.n2);
-        end
-        
-        function [angleMat] = angles(obj, n)
-            %ANGLES Find angles between t-vector at patch centre, and normals in n
-            [s1,s2,s3] = size(n);
-            n = reshape(n, [], 3);
-            obj.centre_xyz = obj.spherical2Cartesian(1, obj.centre(1), obj.centre(2));
-            angleMat = reshape(angles(obj.centre_xyz, n), s1, s2);
-        end
-        
-        function [obj] = setLowerBound(obj, thres_stop)
-            %SETLOWERBOUND Set lower bound at stopping threshold
-            assert(~isempty(obj.angleMat1) & ~isempty(obj.angleMat2), 'Context was not set');
-            positiveRange = pi/2 + thres_stop;
-            obj.edges_stop = ((obj.angleMat1 < positiveRange) & (obj.angleMat2 < positiveRange));
-            obj.LB = obj.getMaxBipartiteMatching(obj.edges_stop);
-        end
-        
-        function [obj] = setUpperBound(obj, thres_stop)
-            assert(~isempty(obj.angleMat1) & ~isempty(obj.angleMat2), 'Context was not set');
-            if obj.thres > thres_stop
-                positiveRange = pi/2 + obj.thres;
-                edges = ((obj.angleMat1 < positiveRange) & (obj.angleMat2 < positiveRange));
-                obj.UB = obj.getMaxBipartiteMatching(edges);
-            else
-                obj.UB = obj.LB;
-            end
-            
-        end
-        
     end
     
     methods (Static)
