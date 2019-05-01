@@ -84,7 +84,7 @@ classdef StereoInterface
                 
                 % early_stop option: Terminate early if e_max reaches max_matches
                 if early_stop && obj.e_max == max_matches
-                    obj.solutions = [obj.solutions solution(blk.centre, thres_stop, blk.LB, blk.edges_stop)];
+                    obj.solutions = [obj.solutions blk];
                     break;
                 end
 
@@ -94,8 +94,8 @@ classdef StereoInterface
                         fprintf("Continue!\n");
                         queue{blk.UB} = [queue{blk.UB} blk.subdivide()];
                     else
-                        fprintf("Solution at stopping resolution: [%d %d %d], score: %d-%d, sigma: %d\n", blk.centre, blk.LB, blk.UB, blk.sigma);
-                        obj.solutions = [obj.solutions solution(blk.centre, blk.sigma, blk.LB, blk.edges_stop)];
+                        fprintf(['Solution at stopping resolution: [', repmat('%d ',[1,size(blk.centre,2)]), '], score: %d-%d, sigma: %d\n'], blk.centre, blk.LB, blk.UB, blk.sigma);
+                        obj.solutions = [obj.solutions blk];
                     end
                 else
                     fprintf("Discard!\n");
@@ -109,7 +109,7 @@ classdef StereoInterface
 
             % Filter out solutions below most recent e_max
             for s = size(obj.solutions, 2):-1:1
-                if obj.solutions(s).score < obj.e_max
+                if obj.solutions(s).LB < obj.e_max
                     obj.solutions(s) = [];
                 end
             end
