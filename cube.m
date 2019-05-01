@@ -2,6 +2,7 @@ classdef cube < block
     %CUBE 3D block
     properties
         angleMat
+        patches
     end
     
     methods
@@ -58,7 +59,7 @@ classdef cube < block
         function [obj] = setContext(obj, context)
             %SETCONTEXT Necessary computation before checking bounds
             % Given rotation at block centre, find angles(Rp, q)
-            R  = aa2mat(obj.centre);
+            R  = obj.aa2mat();
             Rp = (R * context.p')';
             obj.angleMat = angles(Rp, context.q);
         end

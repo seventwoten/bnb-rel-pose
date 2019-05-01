@@ -83,22 +83,22 @@ R_half_len = 1/64 * pi;     % find T given an R block of this size
 t_half_len = 1/4 * pi;      % search within an initial T patch of this size 
 
 % Do T search for a particular R block (centred at ground truth)
-c = cubeRT(axis_angle, R_half_len, []);
-c = c.setContext(context(p,q), delta);
-    
-% Start T search within initial patch (centred at ground truth)
-% init_blk = sphericalPatch(t_long_lat, t_half_len, []);
-% solutions = bnb(init_blk.subdivide(), contextT(p, q, c.n1, c.n2), thres_stop);  
+R_block = cube(axis_angle, R_half_len, []);
 
-st = StereoT(p, q, c.n1, c.n2, t_long_lat, t_half_len, thres_stop);
-[st, solutions] = st.findSolutions();
+% Get spherical wedges corresponding to Rp-q pairs
+stRT = StereoRT(p, q, [], [], [], [], [], [], delta); 
+[n1, n2] = stRT.getWedges(R_block, R_block.thres);
+
+% Start T search within initial patch (centred at ground truth)
+stT = StereoT(p, q, n1, n2, t_long_lat, t_half_len, thres_stop);
+[stT, solutions] = stT.findSolutions(false);
 
 toc;
 
 fprintf("Number of solutions: %d\n", size(solutions,2));
 fprintf("Displaying up to 5:\n");
 for s = 1: min(size(solutions,2), 5)
-    fprintf("Solution %d: [%d %d], sigma: %d pi, score: %d\n R:", s, solutions(s).centre, solutions(s).sigma/pi, solutions(s).score);
+    fprintf("Solution %d: [%d %d], sigma: %d pi, score: %d\n", s, solutions(s).centre, solutions(s).sigma/pi, solutions(s).LB);
     % Plot solution matrices
-    figure, imagesc(solutions(s).edges);
+    figure, imagesc(solutions(s).edges_stop);
 end

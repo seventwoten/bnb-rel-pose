@@ -80,11 +80,11 @@ solutions = bnb(init_blk.subdivide(), context(p,q), 1/32 * pi);
 toc;
 
 for s = 1: size(solutions,2)
-    fprintf("Solution %d: [%d %d %d], sigma: %d pi, score: %d\n R:", s, solutions(s).centre, solutions(s).sigma/pi, solutions(s).score);
-    R = aa2mat(solutions(s).centre);
+    fprintf("Solution %d: [%d %d %d], sigma: %d pi, score: %d\n R:", s, solutions(s).centre, solutions(s).sigma/pi, solutions(s).LB);
+    R = solutions(s).aa2mat();
     disp(R);
     fprintf("rpy: [%d %d %d]\n", R2rpy(R));
     
     % Plot solution matrices
-    figure, imagesc(solutions(s).edges);
+    figure, imagesc(solutions(s).edges_stop);
 end
