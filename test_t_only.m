@@ -90,7 +90,7 @@ c = c.setContext(context(p,q), delta);
 % init_blk = sphericalPatch(t_long_lat, t_half_len, []);
 % solutions = bnb(init_blk.subdivide(), contextT(p, q, c.n1, c.n2), thres_stop);  
 
-st = StereoT(p, q, c.n1, c.n2, thres_stop, t_long_lat, t_half_len);
+st = StereoT(p, q, c.n1, c.n2, t_long_lat, t_half_len, thres_stop);
 [st, solutions] = st.findSolutions();
 
 toc;

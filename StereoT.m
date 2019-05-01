@@ -5,7 +5,7 @@ classdef StereoT < StereoInterface
     properties
         n1
         n2
-        thres_stop_T
+        thres_stop_t
         t_long_lat
         t_half_len
         
@@ -14,20 +14,22 @@ classdef StereoT < StereoInterface
     end
     
     methods
-        function obj = StereoT(p, q, n1, n2, thres_stop_T, t_long_lat, t_half_len)
+        function obj = StereoT(p, q, n1, n2, t_long_lat, t_half_len, thres_stop_t)
             %STEREOT Construct an instance of this class
-            %   Detailed explanation goes here
+            %   t_long_lat and t_half_len are optional 
+            %   (pass in [] to use default values)
             obj = obj@StereoInterface(p, q);
             obj.n1 = n1;
             obj.n2 = n2;
-            obj.thres_stop_T = thres_stop_T;
+            obj.thres_stop_t = thres_stop_t;
             
-            if nargin == 7
-                obj.t_long_lat = t_long_lat;
-                obj.t_half_len = t_half_len;
-            else
+            if isempty(t_long_lat) || isempty(t_half_len)
+                % default t range to search
                 obj.t_long_lat = [0, pi];
                 obj.t_half_len = pi/2;
+            else
+                obj.t_long_lat = t_long_lat;
+                obj.t_half_len = t_half_len;
             end
         end
         
@@ -59,7 +61,7 @@ classdef StereoT < StereoInterface
         
         function [obj, solutions] = findSolutions(obj)
             init_blk = sphericalPatch(obj.t_long_lat, obj.t_half_len, []);
-            obj = obj.bnb(init_blk.subdivide(), obj.thres_stop_T); 
+            obj = obj.bnb(init_blk.subdivide(), obj.thres_stop_t); 
             solutions = obj.solutions;
         end
         
