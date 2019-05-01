@@ -9,6 +9,7 @@ classdef StereoInterface
         
         capacityMat % capacity matrix for use in maxflow
         solutions   % list of solutions
+        e_max       % maximum solution score (running max of lower bound)
     end
     
     methods (Abstract)
@@ -37,7 +38,7 @@ classdef StereoInterface
             end
         end
         
-        function [obj] = bnb(obj, initList, thres_stop)
+        function [obj] = bnb(obj, initList, thres_stop, early_stop)
             %BNB Do branch and bound
             
             % Set up variables
@@ -46,7 +47,7 @@ classdef StereoInterface
             queue = cell(1,max_matches); % Set up one block queue per no. of matches 
             queue{max_matches} = initList;
 
-            e_max = 0;
+            obj.e_max = 0;
             i = max_matches;
             obj.solutions = [];
 
@@ -59,7 +60,7 @@ classdef StereoInterface
                 % Do any necessary computation before checking bounds
                 obj = obj.setContext(blk);
 
-                fprintf("Iteration %d   sigma: %d pi e_max = %d\n", iter, blk.sigma/pi, e_max);
+                fprintf("Iteration %d   sigma: %d pi e_max = %d\n", iter, blk.sigma/pi, obj.e_max);
 
                 % Compute block lower bound with stopping threshold
                 blk = obj.updateLowerBound(blk, thres_stop);
@@ -70,19 +71,25 @@ classdef StereoInterface
                 fprintf("Upper bound: %d \t", blk.UB);
 
                 % Update e_max
-                if blk.LB > e_max
-                    fprintf("Replaced e_max %d with %d.\n", e_max, blk.LB);
-                    e_max = blk.LB;
+                if blk.LB > obj.e_max
+                    fprintf("Replaced e_max %d with %d.\n", obj.e_max, blk.LB);
+                    obj.e_max = blk.LB;
 
                     % After updating e_max, check queue for discardable blocks
                     % (parentUB < e_max)
-                    fprintf("Discarded blocks below %d!\n", e_max);
-                    queue([1:e_max-1]) = {[]};
+                    fprintf("Discarded blocks below %d!\n", obj.e_max);
+                    queue([1:obj.e_max-1]) = {[]};
 
+                end
+                
+                % early_stop option: Terminate early if e_max reaches max_matches
+                if early_stop && obj.e_max == max_matches
+                    obj.solutions = [obj.solutions solution(blk.centre, thres_stop, blk.LB, blk.edges_stop)];
+                    break;
                 end
 
                 % Discard this block, or subdivide/terminate
-                if blk.UB > 0 && blk.UB >= e_max
+                if blk.UB > 0 && blk.UB >= obj.e_max
                     if blk.thres > thres_stop
                         fprintf("Continue!\n");
                         queue{blk.UB} = [queue{blk.UB} blk.subdivide()];
@@ -102,7 +109,7 @@ classdef StereoInterface
 
             % Filter out solutions below most recent e_max
             for s = size(obj.solutions, 2):-1:1
-                if obj.solutions(s).score < e_max
+                if obj.solutions(s).score < obj.e_max
                     obj.solutions(s) = [];
                 end
             end
