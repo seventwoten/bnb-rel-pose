@@ -36,6 +36,25 @@ classdef cube < block
             
         end
         
+        function [R] = aa2mat(obj)
+            %AA2MAT Returns an R matrix, converted from cube centre as a 3d 
+            % point in an R-space ball. (centre is 1 x 3)
+            
+            alpha = sqrt(sum(obj.centre.^2,2));
+            u = obj.centre / alpha;
+
+            c = cos(alpha);
+            s = sin(alpha);
+            t = 1-c;
+
+            U_outer = u' * u;
+            U_as = [      0, -u(1,3),  u(1,2) ; 
+                     u(1,3),       0, -u(1,1) ; 
+                    -u(1,2),  u(1,1),      0 ];
+
+            R = c * eye(3) + t * U_outer + s * U_as;
+        end
+        
         function [obj] = setContext(obj, context)
             %SETCONTEXT Necessary computation before checking bounds
             % Given rotation at block centre, find angles(Rp, q)
