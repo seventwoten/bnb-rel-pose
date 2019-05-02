@@ -81,7 +81,7 @@ classdef StereoRT < StereoInterface
         function [block] = updateLowerBound(obj, block, thres_stop) 
             %UPDATELOWERBOUND Update block lower bound at stopping threshold
             assert(~isempty(obj.n1_LB) & ~isempty(obj.n2_LB), 'Context was not set');
-            st = StereoT(obj.p, obj.q, obj.n1_LB, obj.n2_LB, obj.t_long_lat, obj.t_half_len, thres_stop);
+            st = StereoT(obj.p, obj.q, obj.n1_LB, obj.n2_LB, obj.t_long_lat, obj.t_half_len, obj.thres_stop_T);
             st = st.findSolutions(true); % early_stop = true
             block.LB = st.e_max;
             block.patches = st.solutions;
@@ -91,7 +91,7 @@ classdef StereoRT < StereoInterface
             %UPDATEUPPERBOUND Update block upper bound at threshold
             if block.thres > thres_stop
                 assert(~isempty(obj.n1_UB) & ~isempty(obj.n2_UB), 'Context was not set');
-                st = StereoT(obj.p, obj.q, obj.n1_UB, obj.n2_UB, obj.t_long_lat, obj.t_half_len, thres_stop);
+                st = StereoT(obj.p, obj.q, obj.n1_UB, obj.n2_UB, obj.t_long_lat, obj.t_half_len, obj.thres_stop_T);
                 st = st.findSolutions(true); % early_stop = true
                 block.UB = st.e_max;
             else
