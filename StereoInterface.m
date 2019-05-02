@@ -52,7 +52,10 @@ classdef StereoInterface
             obj.solutions = [];
 
             iter = 1;
+            
             while ~isempty(i)
+                add_solution = false;
+                
                 % dequeue block from front of queue with largest max_matches 
                 blk = queue{i}(1);
                 queue{i}(1) = [];
@@ -74,18 +77,16 @@ classdef StereoInterface
                 if blk.LB > obj.e_max
                     fprintf("Replaced e_max %d with %d.\n", obj.e_max, blk.LB);
                     obj.e_max = blk.LB;
-
+                    
+                    % Add block to solutions (quick fix for runs that
+                    % terminate with no solutions)
+                    add_solution = true;
+                    
                     % After updating e_max, check queue for discardable blocks
                     % (parentUB < e_max)
                     fprintf("Discarded blocks below %d!\n", obj.e_max);
                     queue([1:obj.e_max-1]) = {[]};
 
-                end
-                
-                % early_stop option: Terminate early if e_max reaches max_matches
-                if early_stop && obj.e_max == max_matches
-                    obj.solutions = [obj.solutions blk];
-                    break;
                 end
 
                 % Discard this block, or subdivide/terminate
@@ -95,12 +96,22 @@ classdef StereoInterface
                         queue{blk.UB} = [queue{blk.UB} blk.subdivide()];
                     else
                         fprintf(['Solution at stopping resolution: [', repmat('%d ',[1,size(blk.centre,2)]), '], score: %d-%d, sigma: %d\n'], blk.centre, blk.LB, blk.UB, blk.sigma);
-                        obj.solutions = [obj.solutions blk];
+                        add_solution = true;
                     end
                 else
                     fprintf("Discard!\n");
                 end
-
+                
+                % Add solution if flag is true
+                if add_solution
+                    obj.solutions = [obj.solutions blk];
+                end
+                
+                % early_stop option: Terminate early with this solution if e_max reaches max_matches
+                if early_stop && obj.e_max == max_matches
+                    break;
+                end
+                
                 i = find(~cellfun(@isempty,queue), 1, 'last');
                 fprintf("next i: %d\n\n", i);
                 iter = iter + 1;

@@ -56,33 +56,6 @@ classdef cube < block
             R = c * eye(3) + t * U_outer + s * U_as;
         end
         
-        function [obj] = setContext(obj, context)
-            %SETCONTEXT Necessary computation before checking bounds
-            % Given rotation at block centre, find angles(Rp, q)
-            R  = obj.aa2mat();
-            Rp = (R * context.p')';
-            obj.angleMat = angles(Rp, context.q);
-        end
-        
-        function [obj] = setLowerBound(obj, thres_stop)
-            %SETLOWERBOUND Set lower bound at stopping threshold
-            assert(~isempty(obj.angleMat), 'Context was not set');
-            obj.edges_stop = obj.angleMat < thres_stop;
-            obj.LB = obj.getMaxBipartiteMatching(obj.edges_stop);
-        end
-        
-        function [obj] = setUpperBound(obj, thres_stop)
-            %SETUPPERBOUND Set upper bound at sqrt(3) * sigma threshold
-            assert(~isempty(obj.angleMat), 'Context was not set');
-            if obj.thres > thres_stop
-                edges = obj.angleMat < obj.thres;
-                obj.UB = obj.getMaxBipartiteMatching(edges);
-            else
-                obj.UB = obj.LB;
-            end
-        end
-        
     end
-    
 end
 
