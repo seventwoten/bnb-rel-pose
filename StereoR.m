@@ -33,7 +33,7 @@ classdef StereoR < StereoInterface
             % Given rotation at block centre, find angles(Rp, q)
             R  = block.aa2mat();
             Rp = (R * obj.p')';
-            obj.angleMat = angles(Rp, obj.q);
+            obj.angleMat = obj.angles(Rp, obj.q);
         end
         
         function [block] = updateLowerBound(obj, block, thres_stop) 

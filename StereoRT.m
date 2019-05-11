@@ -54,7 +54,7 @@ classdef StereoRT < StereoInterface
         function [normals1, normals2] = getWedges(obj, block, threshold_R)
             R  = block.aa2mat();
             Rp = (R * obj.p')';
-            obj.angleMat = angles(Rp, obj.q);
+            obj.angleMat = obj.angles(Rp, obj.q);
             
             sin_e_p = sin(obj.delta + threshold_R);
             sin_e_q = sin(obj.delta);

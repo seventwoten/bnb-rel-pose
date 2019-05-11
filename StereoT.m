@@ -34,8 +34,8 @@ classdef StereoT < StereoInterface
         end
         
         function [obj] = setContext(obj, block)
-            obj.angleMat1 = obj.angles(block.centre_xyz, obj.n1);
-            obj.angleMat2 = obj.angles(block.centre_xyz, obj.n2);
+            obj.angleMat1 = obj.findAnglesToNormals(block.centre_xyz, obj.n1);
+            obj.angleMat2 = obj.findAnglesToNormals(block.centre_xyz, obj.n2);
         end
         
         function [block] = updateLowerBound(obj, block, thres_stop) 
@@ -65,14 +65,11 @@ classdef StereoT < StereoInterface
             solutions = obj.solutions;
         end
         
-    end
-    
-    methods (Static)
-        function [angleMat] = angles(t, n)
-            %ANGLES Find angles between t-vector at patch centre, and normals in n
+        function [angleMat] = findAnglesToNormals(obj, t, n)
+            %FINDANGLES Find angles between t-vector at patch centre, and normals in n
             [s1,s2,s3] = size(n);
             n = reshape(n, [], 3);
-            angleMat = reshape(angles(t, n), s1, s2);
+            angleMat = reshape(obj.angles(t, n), s1, s2);
         end
     end
 end

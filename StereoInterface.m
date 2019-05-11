@@ -156,7 +156,19 @@ classdef StereoInterface
             end
             out = C;
         end
-      
+        
+        function [result] = angles(v1, v2)
+            %ANGLES Finds pairwise angles between two arrays of 3D vectors
+            %   Detailed explanation goes here
+
+            v1_mag = sqrt(sum(v1.^2,2)); % N x 1
+            v2_mag = sqrt(sum(v2.^2,2)); % N x 1
+            divisor = v1_mag * v2_mag';   % N x N
+
+            cos_angle = (v1 * v2') ./ divisor;
+            result = abs(acos(cos_angle));
+        end
+
     end
 end
 
