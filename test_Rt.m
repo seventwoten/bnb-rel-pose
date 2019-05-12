@@ -7,9 +7,8 @@
 % xyz: [-0.3,-0.4, 0] -> theta-phi as longitude-latitude: [-2.2142974, 1.5707963]
 
 close all; clear all;
-diary 'diary_Rt.txt'
+diary(['diary_Rt_',datestr(now,'yyyy-mm-dd','local'),'_',datestr(now,'hh.MM.ss','local'),'.txt'])
 diary on;
-
 
 p = [-0.0596,  0.2702, 1.  ;
       0.3342, -0.1944, 1.  ;
@@ -84,6 +83,8 @@ R_half_len   = 1/8 * pi;      % Initial R block half-length
 thres_stop_R = 1/32 * pi;     % Stop when cube diagonal drops below this value
 t_half_len   = 0.4 * pi;      % Initial T patch half-length
 thres_stop_t = 1/64 * pi;     % Stop when patch diagonal drops below this value
+
+fprintf("test_Rt: delta = %d, R_half_len = %d pi, thres_stop_R = %d pi, t_half_len = %d pi, thres_stop_t = %d pi\n", delta, R_half_len/pi, thres_stop_R/pi, t_half_len/pi, thres_stop_t/pi);
 
 tic;
 
