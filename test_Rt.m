@@ -81,7 +81,7 @@ t_long_lat = [-2.2142974, 1.5707963];
 delta        = 0;             % minimum angular error in Rp and q 
 R_half_len   = 1/8 * pi;      % Initial R block half-length
 thres_stop_R = 1/32 * pi;     % Stop when cube diagonal drops below this value
-t_half_len   = 0.4 * pi;      % Initial T patch half-length
+t_half_len   = 0.5 * pi;      % Initial T patch half-length
 thres_stop_t = 1/64 * pi;     % Stop when patch diagonal drops below this value
 
 fprintf("test_Rt: delta = %d, R_half_len = %d pi, thres_stop_R = %d pi, t_half_len = %d pi, thres_stop_t = %d pi\n", delta, R_half_len/pi, thres_stop_R/pi, t_half_len/pi, thres_stop_t/pi);

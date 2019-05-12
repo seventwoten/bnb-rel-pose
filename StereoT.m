@@ -43,6 +43,13 @@ classdef StereoT < StereoInterface
             assert(~isempty(obj.angleMat1) & ~isempty(obj.angleMat2), 'Context was not set');
             positiveRange = pi/2 + thres_stop;
             block.edges_stop = ((obj.angleMat1 < positiveRange) & (obj.angleMat2 < positiveRange));
+            
+            % Remove rows/columns that match every point
+            rows = find(all(block.edges_stop,2));
+            cols = find(all(block.edges_stop,1));
+            block.edges_stop(rows,:)= 0;
+            block.edges_stop(:,cols)= 0;
+            
             block.LB = obj.getMaxBipartiteMatching(block.edges_stop);
         end
         
