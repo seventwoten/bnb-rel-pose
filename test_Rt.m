@@ -83,12 +83,13 @@ R_half_len   = 1/8 * pi;      % Initial R block half-length
 thres_stop_R = 1/32 * pi;     % Stop when cube diagonal drops below this value
 t_half_len   = 0.5 * pi;      % Initial T patch half-length
 thres_stop_t = 1/64 * pi;     % Stop when patch diagonal drops below this value
+epipole_thres = 0.7;          % Reject points that match more than this fraction of points
 
-fprintf("test_Rt: delta = %d, R_half_len = %d pi, thres_stop_R = %d pi, t_half_len = %d pi, thres_stop_t = %d pi\n", delta, R_half_len/pi, thres_stop_R/pi, t_half_len/pi, thres_stop_t/pi);
+fprintf("test_Rt: delta = %d, R_half_len = %d pi, thres_stop_R = %d pi, t_half_len = %d pi, thres_stop_t = %d pi, epipole_thres = %d\n", delta, R_half_len/pi, thres_stop_R/pi, t_half_len/pi, thres_stop_t/pi, epipole_thres);
 
 tic;
 
-st = StereoRT(p, q, axis_angle, R_half_len, thres_stop_R, t_long_lat, t_half_len, thres_stop_t, delta);
+st = StereoRT(p, q, axis_angle, R_half_len, thres_stop_R, t_long_lat, t_half_len, thres_stop_t, delta, epipole_thres);
 [st, solutions] = st.findSolutions();
 
 toc;

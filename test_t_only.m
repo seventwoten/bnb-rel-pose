@@ -86,11 +86,11 @@ t_half_len = 1/4 * pi;      % search within an initial T patch of this size
 R_block = cube(axis_angle, R_half_len, []);
 
 % Get spherical wedges corresponding to Rp-q pairs
-stRT = StereoRT(p, q, [], [], [], [], [], [], delta); 
+stRT = StereoRT(p, q, [], [], [], [], [], [], delta, []);
 [n1, n2] = stRT.getWedges(R_block, R_block.thres);
 
 % Start T search within initial patch (centred at ground truth)
-stT = StereoT(p, q, n1, n2, t_long_lat, t_half_len, thres_stop);
+stT = StereoT(p, q, n1, n2, t_long_lat, t_half_len, thres_stop, []);
 [stT, solutions] = stT.findSolutions(false);
 
 toc;

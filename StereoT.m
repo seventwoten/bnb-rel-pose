@@ -9,12 +9,15 @@ classdef StereoT < StereoInterface
         t_long_lat
         t_half_len
         
+        max_edges_p % reject points near epipole with edges > max_edges
+        max_edges_q
+        
         angleMat1
         angleMat2
     end
     
     methods
-        function obj = StereoT(p, q, n1, n2, t_long_lat, t_half_len, thres_stop_t)
+        function obj = StereoT(p, q, n1, n2, t_long_lat, t_half_len, thres_stop_t, epipole_threshold)
             %STEREOT Construct an instance of this class
             %   t_long_lat and t_half_len are optional 
             %   (pass in [] to use default values)
@@ -31,6 +34,14 @@ classdef StereoT < StereoInterface
                 obj.t_long_lat = t_long_lat;
                 obj.t_half_len = t_half_len;
             end
+            
+            if isempty(epipole_threshold)
+                % default: reject those matching >80% of points
+                epipole_threshold = 0.8;
+            end
+            obj.max_edges_p = epipole_threshold * obj.Nq;
+            obj.max_edges_q = epipole_threshold * obj.Np;
+            
         end
         
         function [obj] = setContext(obj, block)
@@ -45,8 +56,8 @@ classdef StereoT < StereoInterface
             block.edges_stop = ((obj.angleMat1 < positiveRange) & (obj.angleMat2 < positiveRange));
             
             % Remove rows/columns that match every point
-            rows = find(all(block.edges_stop,2));
-            cols = find(all(block.edges_stop,1));
+            rows = find(sum(block.edges_stop,2) > obj.max_edges_p);
+            cols = find(sum(block.edges_stop,1) > obj.max_edges_q);
             block.edges_stop(rows,:)= 0;
             block.edges_stop(:,cols)= 0;
             
