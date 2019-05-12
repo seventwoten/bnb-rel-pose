@@ -7,7 +7,7 @@
 % xyz: [-0.3,-0.4, 0] -> theta-phi as longitude-latitude: [-2.2142974, 1.5707963]
 
 close all; clear all;
-diary(['diary_Rt_',datestr(now,'yyyy-mm-dd','local'),'_',datestr(now,'hh.MM.ss','local'),'.txt'])
+diary(['diary\diary_Rt_',datestr(now,'yyyy-mm-dd','local'),'_',datestr(now,'hh.MM.ss','local'),'.txt'])
 diary on;
 
 p = [-0.0596,  0.2702, 1.  ;
