@@ -83,6 +83,8 @@ classdef StereoRT < StereoInterface
         function [block] = updateLowerBound(obj, block, thres_stop) 
             %UPDATELOWERBOUND Update block lower bound at stopping threshold
             assert(~isempty(obj.n1_LB) & ~isempty(obj.n2_LB), 'Context was not set');
+            
+            % Pass near-epipole check option to T search, only at R stopping threshold
             st = StereoT(obj.p, obj.q, obj.n1_LB, obj.n2_LB, obj.t_long_lat, obj.t_half_len, obj.thres_stop_T, obj.epipole_threshold);
             fprintf("{\n");
             st = st.findSolutions(true); % early_stop = true
@@ -95,7 +97,7 @@ classdef StereoRT < StereoInterface
             %UPDATEUPPERBOUND Update block upper bound at threshold
             if block.thres > thres_stop
                 assert(~isempty(obj.n1_UB) & ~isempty(obj.n2_UB), 'Context was not set');
-                st = StereoT(obj.p, obj.q, obj.n1_UB, obj.n2_UB, obj.t_long_lat, obj.t_half_len, obj.thres_stop_T, obj.epipole_threshold);
+                st = StereoT(obj.p, obj.q, obj.n1_UB, obj.n2_UB, obj.t_long_lat, obj.t_half_len, obj.thres_stop_T, -1);
                 fprintf("{\n");
                 st = st.findSolutions(true); % early_stop = true
                 fprintf("}\n");

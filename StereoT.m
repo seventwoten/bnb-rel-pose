@@ -9,8 +9,9 @@ classdef StereoT < StereoInterface
         t_long_lat
         t_half_len
         
-        max_edges_p % reject points near epipole with edges > max_edges
-        max_edges_q
+        check_epipole  % option to turn on near-epipole check
+        max_edges_p    % reject p points near epipole with edges > max_edges_p
+        max_edges_q    % reject q points near epipole with edges > max_edges_q
         
         angleMat1
         angleMat2
@@ -39,8 +40,15 @@ classdef StereoT < StereoInterface
                 % default: reject those matching >80% of points
                 epipole_threshold = 0.8;
             end
-            obj.max_edges_p = epipole_threshold * obj.Nq;
-            obj.max_edges_q = epipole_threshold * obj.Np;
+            
+            if epipole_threshold == -1
+                obj.check_epipole = false;
+            else
+                obj.check_epipole = true;
+                obj.max_edges_p = epipole_threshold * obj.Nq;
+                obj.max_edges_q = epipole_threshold * obj.Np;
+            end
+            
             
         end
         
@@ -55,11 +63,13 @@ classdef StereoT < StereoInterface
             positiveRange = pi/2 + thres_stop;
             block.edges_stop = ((obj.angleMat1 < positiveRange) & (obj.angleMat2 < positiveRange));
             
-            % Remove rows/columns that match every point
-            rows = find(sum(block.edges_stop,2) > obj.max_edges_p);
-            cols = find(sum(block.edges_stop,1) > obj.max_edges_q);
-            block.edges_stop(rows,:)= 0;
-            block.edges_stop(:,cols)= 0;
+            % Near-epipole check: Remove rows/columns that match too many points
+            if obj.check_epipole
+                rows = sum(block.edges_stop,2) >= obj.max_edges_p;
+                cols = sum(block.edges_stop,1) >= obj.max_edges_q;
+                block.edges_stop(rows,:)= 0;
+                block.edges_stop(:,cols)= 0;
+            end
             
             block.LB = obj.getMaxBipartiteMatching(block.edges_stop);
         end
