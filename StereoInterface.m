@@ -70,7 +70,11 @@ classdef StereoInterface
                 fprintf("Lower bound: %d\n", blk.LB);
 
                 % Compute block upper bound at sqrt(3)-sigma threshold
-                blk = obj.updateUpperBound(blk, thres_stop);
+                if blk.LB == max_matches
+                    blk.UB = blk.LB;
+                else
+                    blk = obj.updateUpperBound(blk, thres_stop);
+                end
                 fprintf("Upper bound: %d \t", blk.UB);
 
                 % Update e_max
@@ -95,7 +99,6 @@ classdef StereoInterface
                         fprintf("Continue!\n");
                         queue{blk.UB} = [queue{blk.UB} blk.subdivide()];
                     else
-                        fprintf(['Solution at stopping resolution: [', repmat('%d ',[1,size(blk.centre,2)]), '], score: %d-%d, sigma: %d\n'], blk.centre, blk.LB, blk.UB, blk.sigma);
                         add_solution = true;
                     end
                 else
@@ -104,6 +107,7 @@ classdef StereoInterface
                 
                 % Add solution if flag is true
                 if add_solution
+                    fprintf(['Solution at stopping resolution: [', repmat('%d ',[1,size(blk.centre,2)]), '], score: %d-%d, sigma: %d\n'], blk.centre, blk.LB, blk.UB, blk.sigma);
                     obj.solutions = [obj.solutions blk];
                 end
                 
