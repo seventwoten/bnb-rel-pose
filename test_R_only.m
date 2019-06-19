@@ -9,6 +9,8 @@
 % roll_pitch_yaw = [0.2, -0.1, 0.1]
 
 close all; clear all;
+diary(['diary\diary_R_',datestr(now,'yyyy-mm-dd','local'),'_',datestr(now,'hh.MM.ss','local'),'.txt']);
+diary on;
 
 p = [ 0.0548, -0.2238,  1   ;
       0.0817,  0.2685,  1   ;
@@ -84,8 +86,10 @@ for s = 1: size(solutions,2)
     fprintf("Solution %d: [%d %d %d], sigma: %d pi, score: %d\n R:", s, solutions(s).centre, solutions(s).sigma/pi, solutions(s).LB);
     R = solutions(s).aa2mat();
     disp(R);
-    fprintf("rpy: [%d %d %d]\n", R2rpy(R));
+    fprintf("rpy: [%d %d %d]\n\n", R2rpy(R));
     
     % Plot solution matrices
     figure, imagesc(solutions(s).edges_stop);
 end
+
+diary off;
