@@ -75,7 +75,7 @@ q = [ 0.0196, -0.2977,  1   ;
 
 tic;
 
-stR = StereoR(p, q, [0,0,0], pi, 1/32 * pi);
+stR = StereoR(p, q, [0,0,0], pi, 1/32 * pi, 1/128 * pi);
 [stR, solutions] = stR.findSolutions();
 
 toc;

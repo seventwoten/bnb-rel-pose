@@ -7,15 +7,22 @@ classdef StereoR < StereoInterface
         R_sigma
         thres_stop_R
         
+        delta
         angleMat
     end
     
     methods
-        function obj = StereoR(p, q, R_centre, R_sigma, thres_stop_R)
+        function obj = StereoR(p, q, R_centre, R_sigma, R_sigma_stop, delta)
             %STEREO Construct an instance of this class
             %   Detailed explanation goes here
             obj = obj@StereoInterface(p, q);
-            obj.thres_stop_R = thres_stop_R;
+            obj.thres_stop_R = sqrt(3) * R_sigma_stop;
+            
+            % default angular error allowed in p and q measurements
+            if isempty(delta)
+                delta = 0;
+            end
+            obj.delta = delta;
             
             if isempty(R_centre) || isempty(R_sigma)
                 % default R range to search
@@ -39,7 +46,7 @@ classdef StereoR < StereoInterface
         function [block] = updateLowerBound(obj, block, thres_stop) 
             %UPDATELOWERBOUND Set lower bound at stopping threshold
             assert(~isempty(obj.angleMat), 'Context was not set');
-            block.edges_stop = obj.angleMat < thres_stop;
+            block.edges_stop = obj.angleMat < thres_stop + 2*obj.delta;
             block.LB = obj.getMaxBipartiteMatching(block.edges_stop);
         end
         
@@ -47,7 +54,7 @@ classdef StereoR < StereoInterface
             %SETUPPERBOUND Set upper bound at sqrt(3) * sigma threshold
             assert(~isempty(obj.angleMat), 'Context was not set');
             if block.thres > thres_stop
-                edges = obj.angleMat < block.thres;
+                edges = obj.angleMat < block.thres + 2*obj.delta;
                 block.UB = obj.getMaxBipartiteMatching(edges);
             else
                 block.UB = block.LB;
