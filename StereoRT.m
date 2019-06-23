@@ -9,7 +9,7 @@ classdef StereoRT < StereoInterface
         
         t_long_lat
         t_half_len
-        thres_stop_T
+        t_half_len_stop
         
         delta
         epipole_threshold
@@ -22,12 +22,12 @@ classdef StereoRT < StereoInterface
     end
     
     methods
-        function obj = StereoRT(p, q, R_centre, R_sigma, thres_stop_R, t_long_lat, t_half_len, thres_stop_T, delta, epipole_threshold)
+        function obj = StereoRT(p, q, R_centre, R_sigma, R_sigma_stop, t_long_lat, t_half_len, t_half_len_stop, delta, epipole_threshold)
             %STEREORT Construct an instance of this class
             %   Detailed explanation goes here
             obj = obj@StereoInterface(p, q);
-            obj.thres_stop_R = thres_stop_R;
-            obj.thres_stop_T = thres_stop_T;
+            obj.thres_stop_R = sqrt(3) * R_sigma_stop;
+            obj.t_half_len_stop = t_half_len_stop;
             obj.t_long_lat = t_long_lat;
             obj.t_half_len = t_half_len;
             obj.delta = delta;
@@ -85,7 +85,7 @@ classdef StereoRT < StereoInterface
             assert(~isempty(obj.n1_LB) & ~isempty(obj.n2_LB), 'Context was not set');
             
             % Pass near-epipole check option to T search, only at R stopping threshold
-            st = StereoT(obj.p, obj.q, obj.n1_LB, obj.n2_LB, obj.t_long_lat, obj.t_half_len, obj.thres_stop_T, obj.epipole_threshold);
+            st = StereoT(obj.p, obj.q, obj.n1_LB, obj.n2_LB, obj.t_long_lat, obj.t_half_len, obj.t_half_len_stop, obj.epipole_threshold);
             fprintf("{\n");
             st = st.findSolutions(true); % early_stop = true
             fprintf("}\n");
@@ -97,7 +97,7 @@ classdef StereoRT < StereoInterface
             %UPDATEUPPERBOUND Update block upper bound at threshold
             if block.thres > thres_stop
                 assert(~isempty(obj.n1_UB) & ~isempty(obj.n2_UB), 'Context was not set');
-                st = StereoT(obj.p, obj.q, obj.n1_UB, obj.n2_UB, obj.t_long_lat, obj.t_half_len, obj.thres_stop_T, -1);
+                st = StereoT(obj.p, obj.q, obj.n1_UB, obj.n2_UB, obj.t_long_lat, obj.t_half_len, obj.t_half_len_stop, -1);
                 fprintf("{\n");
                 st = st.findSolutions(true); % early_stop = true
                 fprintf("}\n");

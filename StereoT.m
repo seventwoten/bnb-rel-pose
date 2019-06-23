@@ -18,14 +18,14 @@ classdef StereoT < StereoInterface
     end
     
     methods
-        function obj = StereoT(p, q, n1, n2, t_long_lat, t_half_len, thres_stop_t, epipole_threshold)
+        function obj = StereoT(p, q, n1, n2, t_long_lat, t_half_len, t_half_len_stop, epipole_threshold)
             %STEREOT Construct an instance of this class
             %   t_long_lat and t_half_len are optional 
             %   (pass in [] to use default values)
             obj = obj@StereoInterface(p, q);
             obj.n1 = n1;
             obj.n2 = n2;
-            obj.thres_stop_t = thres_stop_t;
+            obj.thres_stop_t = acos(cos(t_half_len_stop)^2);
             
             if isempty(t_long_lat) || isempty(t_half_len)
                 % default t range to search
