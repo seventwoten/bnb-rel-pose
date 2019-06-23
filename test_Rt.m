@@ -108,6 +108,6 @@ rpy_list = zeros(num_sol, 3);
 for s = 1: num_sol
     rpy_list(s,:) = R2rpy(solutions(s).aa2mat());
 end
-fprintf("Average rpy: [%d %d %d] Ground truth: [%d %d %d]\n", sum(rpy_list, 1)/num_sol, R2rpy(cube(axis_angle,[],[]).aa2mat()));
+fprintf("Average rpy: [%d %d %d] Ground truth: [%d %d %d]\n", sum(rpy_list, 1)/num_sol, R2rpy(cube(axis_angle,[]).aa2mat()));
 
 diary off;

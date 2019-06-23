@@ -6,14 +6,13 @@ classdef cube < block
     end
     
     methods
-        function obj = cube(c, s, p)
+        function obj = cube(c, s)
             %CUBE Construct an instance of this class
             if nargin == 0
                 c = [];
                 s = [];
-                p = [];
             end
-            obj = obj@block(c, s, p);
+            obj = obj@block(c, s);
             obj.thres = sqrt(3) * obj.sigma;
         end
     
@@ -32,7 +31,7 @@ classdef cube < block
             centre_new = obj.centre + sigma_new * shifts;
             
             for c = size(centre_new, 1):-1:1
-                subblocks(c) = cube(centre_new(c,:), sigma_new, obj.UB);
+                subblocks(c) = cube(centre_new(c,:), sigma_new);
             end
             
         end

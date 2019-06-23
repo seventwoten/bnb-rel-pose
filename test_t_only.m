@@ -85,7 +85,7 @@ R_half_len = 1/64 * pi;     % find T given an R block of this size
 t_half_len = 1/4 * pi;      % search within an initial T patch of this size 
 
 % Do T search for a particular R block (centred at ground truth)
-R_block = cube(axis_angle, R_half_len, []);
+R_block = cube(axis_angle, R_half_len);
 
 % Get spherical wedges corresponding to Rp-q pairs
 stRT = StereoRT(p, q, [], [], [], [], [], [], delta, []);

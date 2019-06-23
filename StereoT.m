@@ -88,7 +88,7 @@ classdef StereoT < StereoInterface
         end
         
         function [obj, solutions] = findSolutions(obj, early_stop)
-            init_blk = sphericalPatch(obj.t_long_lat, obj.t_half_len, min(obj.Np, obj.Nq));
+            init_blk = sphericalPatch(obj.t_long_lat, obj.t_half_len);
             obj = obj.bnb(init_blk.subdivide(), obj.thres_stop_t, early_stop); 
             solutions = obj.solutions;
         end
