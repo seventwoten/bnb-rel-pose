@@ -44,13 +44,8 @@ classdef StereoRT < StereoInterface
         end
         
         function [obj] = setContext(obj, block)
-            %SETCONTEXT Compute (n1, n2) from (R, p, q, angles, thres, delta)
+            %SETCONTEXT Compute lower bound (n1, n2) from (R, p, q, angles, thres, delta)
             [obj.n1_LB, obj.n2_LB] = getWedges(obj, block, obj.thres_stop_R);
-            
-            % Skip upper bound computation if below stopping threshold
-            if block.thres > obj.thres_stop_R 
-                [obj.n1_UB, obj.n2_UB] = getWedges(obj, block, block.thres);
-            end
         end
         
         function [normals1, normals2] = getWedges(obj, block, threshold_R)
@@ -93,18 +88,14 @@ classdef StereoRT < StereoInterface
             block.patches = st.solutions;
         end
         
-        function [block] = updateUpperBound(obj, block, thres_stop) 
+        function [block] = updateUpperBound(obj, block)
             %UPDATEUPPERBOUND Update block upper bound at threshold
-            if block.thres > thres_stop
-                assert(~isempty(obj.n1_UB) & ~isempty(obj.n2_UB), 'Context was not set');
-                st = StereoT(obj.p, obj.q, obj.n1_UB, obj.n2_UB, obj.t_long_lat, obj.t_half_len, obj.t_half_len_stop, -1);
-                fprintf("{\n");
-                st = st.findSolutions(true); % early_stop = true
-                fprintf("}\n");
-                block.UB = st.e_max;
-            else
-                block.UB = block.LB;
-            end
+            [obj.n1_UB, obj.n2_UB] = getWedges(obj, block, block.thres);
+            st = StereoT(obj.p, obj.q, obj.n1_UB, obj.n2_UB, obj.t_long_lat, obj.t_half_len, obj.t_half_len_stop, -1);
+            fprintf("{\n");
+            st = st.findSolutions(true); % early_stop = true
+            fprintf("}\n");
+            block.UB = st.e_max;
         end
         
         function [obj, solutions] = findSolutions(obj)

@@ -70,10 +70,10 @@ classdef StereoInterface
                 fprintf("Lower bound: %d\n", blk.LB);
 
                 % Compute block upper bound at sqrt(3)-sigma threshold
-                if blk.LB == max_matches
+                if blk.LB == max_matches || blk.thres <= thres_stop
                     blk.UB = blk.LB;
                 else
-                    blk = obj.updateUpperBound(blk, thres_stop);
+                    blk = obj.updateUpperBound(blk);
                 end
                 fprintf("Upper bound: %d \t", blk.UB);
 

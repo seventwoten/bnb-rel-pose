@@ -50,15 +50,11 @@ classdef StereoR < StereoInterface
             block.LB = obj.getMaxBipartiteMatching(block.edges_stop);
         end
         
-        function [block] = updateUpperBound(obj, block, thres_stop)
+        function [block] = updateUpperBound(obj, block)
             %SETUPPERBOUND Set upper bound at sqrt(3) * sigma threshold
             assert(~isempty(obj.angleMat), 'Context was not set');
-            if block.thres > thres_stop
-                edges = obj.angleMat < block.thres + 2*obj.delta;
-                block.UB = obj.getMaxBipartiteMatching(edges);
-            else
-                block.UB = block.LB;
-            end
+            edges = obj.angleMat < block.thres + 2*obj.delta;
+            block.UB = obj.getMaxBipartiteMatching(edges);
         end
         
         function [obj, solutions] = findSolutions(obj)
