@@ -1,8 +1,6 @@
 classdef tPatch < block
     %TPATCH 2D patch on spherical surface 
     properties
-        angleMat1 % angles between (t, n1)
-        angleMat2 % angles between (t, n2)
         centre_xyz % cartesian representation of patch centre
     end
     
