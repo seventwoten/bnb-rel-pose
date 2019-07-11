@@ -1,5 +1,5 @@
-classdef sphericalPatch < block
-    %SPHERICALPATCH 2D patch on spherical surface 
+classdef tPatch < block
+    %TPATCH 2D patch on spherical surface 
     properties
         angleMat1 % angles between (t, n1)
         angleMat2 % angles between (t, n2)
@@ -7,8 +7,8 @@ classdef sphericalPatch < block
     end
     
     methods
-        function obj = sphericalPatch(c, s)
-            %SPHERICALPATCH Construct an instance of this class
+        function obj = tPatch(c, s)
+            %TPATCH Construct an instance of this class
             if nargin == 0
                 c = [];
                 s = [];
@@ -33,7 +33,7 @@ classdef sphericalPatch < block
             centre_new = obj.centre + sigma_new * shifts;
             
             for c = size(centre_new, 1):-1:1
-                subblocks(c) = sphericalPatch(centre_new(c,:), sigma_new);
+                subblocks(c) = tPatch(centre_new(c,:), sigma_new);
             end
             
         end

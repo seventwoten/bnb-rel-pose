@@ -58,7 +58,7 @@ classdef StereoR < StereoInterface
         end
         
         function [obj, solutions] = findSolutions(obj)
-            init_blk = cube(obj.R_centre, obj.R_sigma);
+            init_blk = RCube(obj.R_centre, obj.R_sigma);
             obj = obj.bnb(init_blk.subdivide(), obj.thres_stop_R, false); 
             solutions = obj.solutions;
         end

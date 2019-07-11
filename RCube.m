@@ -1,13 +1,13 @@
-classdef cube < block
-    %CUBE 3D block
+classdef RCube < block
+    %RCUBE 3D block
     properties
         angleMat
         patches
     end
     
     methods
-        function obj = cube(c, s)
-            %CUBE Construct an instance of this class
+        function obj = RCube(c, s)
+            %RCUBE Construct an instance of this class
             if nargin == 0
                 c = [];
                 s = [];
@@ -31,7 +31,7 @@ classdef cube < block
             centre_new = obj.centre + sigma_new * shifts;
             
             for c = size(centre_new, 1):-1:1
-                subblocks(c) = cube(centre_new(c,:), sigma_new);
+                subblocks(c) = RCube(centre_new(c,:), sigma_new);
             end
             
         end
