@@ -16,7 +16,7 @@ classdef tPatch < block
             % Compute thres and centre_xyz if inputs are not []
             if nargin == 2
                 obj.thres = acos(cos(s)^2);
-                obj.centre_xyz = obj.spherical2Cartesian(1, c(1), c(2));
+                obj.centre_xyz = obj.spherical2Cartesian(1, c(:,1), c(:,2));
             end
         end
         
@@ -39,14 +39,17 @@ classdef tPatch < block
     
     methods (Static)
         function [xyz] = spherical2Cartesian(r, theta, phi)
+            %SPHERICAL2CARTESIAN Convert spherical coordinates to Cartesian
+            %   Can convert multiple vectors by passing in multiple r, 
+            %   theta and phi as column vectors
             sp = sin(phi);
             cp = cos(phi);
             st = sin(theta);
             ct = cos(theta);
 
-            x = r * sp * ct;
-            y = r * sp * st;
-            z = r * cp;
+            x = r .* sp .* ct;
+            y = r .* sp .* st;
+            z = r .* cp;
             xyz = [x, y, z];
         end
     end
