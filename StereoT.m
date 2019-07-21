@@ -198,6 +198,7 @@ classdef StereoT < StereoInterface
             
             % Return one angle matrix for each t vector (stacked in 3rd dimension)
             angleMat = reshape(obj.angles(t, n)', s1, s2, Nt);
+            angleMat(isnan(angleMat)) = 0;
         end
     end
 end

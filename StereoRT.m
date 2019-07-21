@@ -53,8 +53,11 @@ classdef StereoRT < StereoInterface
             Rp = (R * obj.p')';
             obj.angleMat = obj.angles(Rp, obj.q);
             
-            sin_e_p = sin(obj.delta + threshold_R);
-            sin_e_q = sin(obj.delta);
+            e_p = obj.delta + threshold_R;
+            e_q = obj.delta;
+            
+            sin_e_p = sin(e_p);
+            sin_e_q = sin(e_q);
 
             sin2beta_num = (sin_e_p^2 + (2 * sin_e_p * sin_e_q * cos(obj.angleMat)) + sin_e_q^2); 
             sin2beta = sin2beta_num ./ ((sin(obj.angleMat)) .^ 2); 
@@ -73,6 +76,13 @@ classdef StereoRT < StereoInterface
 
             normals1 = sin_beta .* z + cos_beta .* x;
             normals2 = sin_beta .* z - cos_beta .* x;
+            
+            % Zero out normals where Rp and q circular ranges overlap 
+            % (wedge constraint does not hold)
+            has_overlap = obj.angleMat < e_p + e_q;
+            normals1(has_overlap(:,:,[1,1,1])) = 0;
+            normals2(has_overlap(:,:,[1,1,1])) = 0;
+            
         end
         
         function [block] = updateLowerBound(obj, block, thres_stop) 
