@@ -3,12 +3,10 @@ classdef StereoRT < StereoInterface
     %   Detailed explanation goes here
     
     properties
-        R_centre
-        R_sigma
+        R_list             % List of RCubes
         thres_stop_R
         
-        t_long_lat
-        t_half_len
+        t_list             % List of tPatches
         t_half_len_stop
         
         delta
@@ -22,25 +20,29 @@ classdef StereoRT < StereoInterface
     end
     
     methods
-        function obj = StereoRT(p, q, R_centre, R_sigma, R_sigma_stop, t_long_lat, t_half_len, t_half_len_stop, delta, epipole_threshold)
+        function obj = StereoRT(p, q, R_list, R_sigma_stop, t_list, t_half_len_stop, delta, epipole_threshold)
             %STEREORT Construct an instance of this class
             %   Detailed explanation goes here
             obj = obj@StereoInterface(p, q);
             obj.thres_stop_R = sqrt(3) * R_sigma_stop;
             obj.t_half_len_stop = t_half_len_stop;
-            obj.t_long_lat = t_long_lat;
-            obj.t_half_len = t_half_len;
             obj.delta = delta;
             obj.epipole_threshold = epipole_threshold;
             
-            if isempty(R_centre) || isempty(R_sigma)
-                % default t range to search
-                obj.R_centre = [0, 0, 0];
-                obj.R_sigma = pi;
+            if isempty(R_list)
+                % default R range to search
+                obj.R_list = RCube([0, 0, 0], pi);
             else
-                obj.R_centre = R_centre;
-                obj.R_sigma = R_sigma;
+                obj.R_list = R_list;
             end
+            
+            if isempty(t_list)
+                % default t range to search
+                obj.t_list = [tPatch([0, 0], pi/2), tPatch([0, pi], pi/2)];
+            else
+                obj.t_list = t_list;
+            end
+            
         end
         
         function [obj] = setContext(obj, block)
@@ -90,7 +92,7 @@ classdef StereoRT < StereoInterface
             assert(~isempty(obj.n1_LB) & ~isempty(obj.n2_LB), 'Context was not set');
             
             % Pass near-epipole check option to T search, only at R stopping threshold
-            st = StereoT(obj.p, obj.q, obj.n1_LB, obj.n2_LB, obj.t_long_lat, obj.t_half_len, obj.t_half_len_stop, obj.epipole_threshold);
+            st = StereoT(obj.p, obj.q, obj.n1_LB, obj.n2_LB, obj.t_list, obj.t_half_len_stop, obj.epipole_threshold);
             fprintf("{\n");
             st = st.findSolutions(true); % early_stop = true
             fprintf("}\n");
@@ -101,7 +103,7 @@ classdef StereoRT < StereoInterface
         function [block] = updateUpperBound(obj, block)
             %UPDATEUPPERBOUND Update block upper bound at threshold
             [obj.n1_UB, obj.n2_UB] = getWedges(obj, block, block.thres);
-            st = StereoT(obj.p, obj.q, obj.n1_UB, obj.n2_UB, obj.t_long_lat, obj.t_half_len, obj.t_half_len_stop, -1);
+            st = StereoT(obj.p, obj.q, obj.n1_UB, obj.n2_UB, obj.t_list, obj.t_half_len_stop, -1);
             fprintf("{\n");
             st = st.findSolutions(true); % early_stop = true
             fprintf("}\n");
@@ -109,8 +111,11 @@ classdef StereoRT < StereoInterface
         end
         
         function [obj, solutions] = findSolutions(obj)
-            init_blk = RCube(obj.R_centre, obj.R_sigma);
-            obj = obj.bnb(init_blk.subdivide(), obj.thres_stop_R, false); 
+            init_list = obj.R_list;
+            if numel(init_list) == 1
+                init_list = init_list.subdivide();
+            end
+            obj = obj.bnb(init_list, obj.thres_stop_R, false); 
             solutions = obj.solutions;
         end
         

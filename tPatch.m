@@ -14,8 +14,11 @@ classdef tPatch < block
             obj = obj@block(c, s);
             
             % Compute thres and centre_xyz if inputs are not []
-            if nargin == 2
+            if ~isempty(s)
+                assert(s <= pi/2, 'Sigma (patch half-length) must not exceed pi/2');
                 obj.thres = acos(cos(s)^2);
+            end
+            if ~isempty(c)
                 obj.centre_xyz = obj.spherical2Cartesian(1, c(:,1), c(:,2));
             end
         end

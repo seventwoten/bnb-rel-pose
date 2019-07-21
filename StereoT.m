@@ -5,9 +5,8 @@ classdef StereoT < StereoInterface
     properties
         n1
         n2
+        t_list         % List of tPatches
         thres_stop_t
-        t_long_lat
-        t_half_len
         
         check_epipole  % option to turn on near-epipole check
         max_edges_p    % reject p points near epipole with edges > max_edges_p
@@ -18,22 +17,19 @@ classdef StereoT < StereoInterface
     end
     
     methods
-        function obj = StereoT(p, q, n1, n2, t_long_lat, t_half_len, t_half_len_stop, epipole_threshold)
+        function obj = StereoT(p, q, n1, n2, t_list, t_half_len_stop, epipole_threshold)
             %STEREOT Construct an instance of this class
-            %   t_long_lat and t_half_len are optional 
             %   (pass in [] to use default values)
             obj = obj@StereoInterface(p, q);
             obj.n1 = n1;
             obj.n2 = n2;
             obj.thres_stop_t = acos(cos(t_half_len_stop)^2);
             
-            if isempty(t_long_lat) || isempty(t_half_len)
+            if isempty(t_list)
                 % default t range to search
-                obj.t_long_lat = [0, pi];
-                obj.t_half_len = pi/2;
+                obj.t_list = [tPatch([0, 0], pi/2), tPatch([0, pi], pi/2)];
             else
-                obj.t_long_lat = t_long_lat;
-                obj.t_half_len = t_half_len;
+                obj.t_list = t_list;
             end
             
             if isempty(epipole_threshold)
@@ -95,11 +91,31 @@ classdef StereoT < StereoInterface
             end
             
             if parallel_mode
-                init_blk = tPatchList(obj.t_long_lat, obj.t_half_len);
-                obj = obj.bnbList(init_blk.subdivide(), obj.thres_stop_t, early_stop); 
+                Nt = numel(obj.t_list);
+                if Nt == 1
+                    init_list = tPatchList(obj.t_list.centre, obj.t_list.sigma);
+                    init_list = init_list.subdivide();
+                else
+                    centres = zeros(Nt, 2);
+                    sigmas  = zeros(Nt, 1);
+                    for i = 1:Nt
+                        % Extract centres and sigmas from list of tPatches
+                        centres(i, :) = obj.t_list(i).centre;
+                        sigmas(i)     = obj.t_list(i).sigma;
+                    end
+
+                    % Enforce equal sigmas 
+                    assert(all(abs(sigmas - sigmas(1)) < 1e-8), 'Size of initial t-patches must be the same');
+                    init_list = tPatchList(centres, sigmas(1));
+                end
+                
+                obj = obj.bnbList(init_list, obj.thres_stop_t, early_stop); 
             else
-                init_blk = tPatch(obj.t_long_lat, obj.t_half_len);
-                obj = obj.bnb(init_blk.subdivide(), obj.thres_stop_t, early_stop); 
+                init_list = obj.t_list;
+                if numel(init_list) == 1
+                    init_list = init_list.subdivide();
+                end
+                obj = obj.bnb(init_list, obj.thres_stop_t, early_stop); 
             end
             
             solutions = obj.solutions;

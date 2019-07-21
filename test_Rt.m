@@ -78,18 +78,19 @@ t_long_lat = [-2.2142974, 1.5707963];
 
 % Do R and T search, with R block and T patch centred at ground truth
 % Set input variables
+R_list       = [RCube([0,0,pi/4], pi/4), RCube([0,0,-pi/4], pi/4)];
+t_list       = [tPatch([pi,0], pi/2), tPatch([0,0], pi/2)];
+
 delta        = 0;             % minimum angular error in Rp and q 
-R_half_len   = 1/8 * pi;      % Initial R block half-length
 thres_stop_R = 1/32 * pi;     % Stop when cube diagonal drops below this value
-t_half_len   = 0.5 * pi;      % Initial T patch half-length
 thres_stop_t = 1/64 * pi;     % Stop when patch diagonal drops below this value
 epipole_thres = 0.7;          % Reject points that match more than this fraction of points
 
-fprintf("test_Rt: delta = %d, R_half_len = %d pi, thres_stop_R = %d pi, t_half_len = %d pi, thres_stop_t = %d pi, epipole_thres = %d\n", delta, R_half_len/pi, thres_stop_R/pi, t_half_len/pi, thres_stop_t/pi, epipole_thres);
+fprintf("test_Rt: delta = %d, R_half_len = %d pi, thres_stop_R = %d pi, t_half_len = %d pi, thres_stop_t = %d pi, epipole_thres = %d\n", delta, R_list(1).sigma/pi, thres_stop_R/pi, t_list(1).sigma/pi, thres_stop_t/pi, epipole_thres);
 
 tic;
 
-st = StereoRT(p, q, axis_angle, R_half_len, thres_stop_R, t_long_lat, t_half_len, thres_stop_t, delta, epipole_thres);
+st = StereoRT(p, q, R_list, thres_stop_R, t_list, thres_stop_t, delta, epipole_thres);
 [st, solutions] = st.findSolutions();
 
 toc;
