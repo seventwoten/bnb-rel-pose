@@ -59,5 +59,41 @@ classdef RCube < block
         end
         
     end
+    methods (Static)
+        function [R] = rpy2R(roll, pitch, yaw)
+            %RPY2R Converts roll, pitch, yaw (right-handed and in radians) to a rotation matrix.
+
+            cos_r = cos(roll);
+            cos_p = cos(pitch);
+            cos_y = cos(yaw);
+
+            sin_r = sin(roll);
+            sin_p = sin(pitch);
+            sin_y = sin(yaw);
+
+            R = [cos_r*cos_y,  cos_r*sin_y*sin_p - sin_r*cos_p,  cos_r*sin_y*cos_p + sin_r*sin_p ;
+                 sin_r*cos_y,  sin_r*sin_y*sin_p + cos_r*cos_p,  sin_r*sin_y*cos_p - cos_r*sin_p ;
+                 -sin_y     ,  cos_y*sin_p                    ,  cos_y*cos_p                    ];
+        end
+        
+        function [rpy] = R2rpy(R)
+            %R2RPY Converts rotation matrix to roll, pitch, yaw (right-handed and in radians).
+
+            sy = sqrt(R(1,1) * R(1,1) + R(2,1) * R(2,1));
+            singular = sy < 1e-6;
+
+            if ~singular
+                r = atan2( R(2,1), R(1,1));
+                p = atan2( R(3,2), R(3,3));
+                y = atan2(-R(3,1), sy);
+            else
+                p = atan2(-R(2,3), R(2,2));
+                y = atan2(-R(3,1), sy);
+                r = 0;
+            end
+
+            rpy = [r, p, y];
+        end
+    end
 end
 
