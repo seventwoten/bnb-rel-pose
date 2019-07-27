@@ -109,15 +109,15 @@ fprintf("Displaying up to 5:\n");
 
 num_sol = size(solutions,2);
 for s = 1: min(num_sol, 5)
-    fprintf("Solution %d: [%d %d %d], sigma: %s pi, score: %d rpy: [%d %d %d]\n", s, solutions(s).centre, rats(solutions(s).sigma/pi,5), solutions(s).LB, R2rpy(solutions(s).aa2mat()));
+    fprintf("Solution %d: [%d %d %d], sigma: %s pi, score: %d rpy: [%d %d %d]\n", s, solutions(s).centre, rats(solutions(s).sigma/pi,5), solutions(s).LB, RCube.R2rpy(solutions(s).aa2mat()));
     % For each R, plot 1 solution matrix representing one possible t
     figure, imagesc(solutions(s).patches(1).edges_stop);
 end
 
 rpy_list = zeros(num_sol, 3);
 for s = 1: num_sol
-    rpy_list(s,:) = R2rpy(solutions(s).aa2mat());
+    rpy_list(s,:) = RCube.R2rpy(solutions(s).aa2mat());
 end
-fprintf("Average rpy: [%d %d %d] Ground truth: [%d %d %d]\n", sum(rpy_list, 1)/num_sol, R2rpy(RCube(axis_angle,[]).aa2mat()));
+fprintf("Average rpy: [%d %d %d] Ground truth: [%d %d %d]\n", sum(rpy_list, 1)/num_sol, RCube.R2rpy(RCube(axis_angle,[]).aa2mat()));
 
 diary off;
