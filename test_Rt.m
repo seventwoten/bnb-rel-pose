@@ -1,5 +1,4 @@
-% Test for t-only case 
-% Search is close to ground truth R and T
+% Test for unknown R and t, with up to 1 known correspondence
 % 30 3D points seen in both views, with quantisation noise and no outliers
 
 % Ground truth: 
@@ -7,8 +6,9 @@
 % xyz: [-0.3,-0.4, 0] -> theta-phi as longitude-latitude: [-2.2142974, 1.5707963]
 
 close all; clear all;
-diary(['diary\diary_Rt_',datestr(now,'yyyy-mm-dd','local'),'_',datestr(now,'hh.MM.ss','local'),'.txt'])
-diary on;
+
+known_corr = [1,1];    % set to [] for no known correspondences
+diary_corr = '1c_';    % set to [] to turn off diary name
 
 p = [-0.0596,  0.2702, 1.  ;
       0.3342, -0.1944, 1.  ;
@@ -86,11 +86,20 @@ thres_stop_R = 1/32 * pi;     % Stop when cube diagonal drops below this value
 thres_stop_t = 1/64 * pi;     % Stop when patch diagonal drops below this value
 epipole_thres = 0.7;          % Reject points that match more than this fraction of points
 
-fprintf("test_Rt: delta = %d, R_half_len = %d pi, thres_stop_R = %d pi, t_half_len = %d pi, thres_stop_t = %d pi, epipole_thres = %d\n", delta, R_list(1).sigma/pi, thres_stop_R/pi, t_list(1).sigma/pi, thres_stop_t/pi, epipole_thres);
+
+diary([['diary\diary_Rt_', diary_corr],datestr(now,'yyyy-mm-dd','local'),'_',datestr(now,'hh.MM.ss','local'),'.txt'])
+diary on;
+fprintf("test_Rt: \n");
+fprintf("delta         =  %f \n",    delta);
+fprintf("R_half_len    = %s pi \n", rats(R_list(1).sigma/pi,5));
+fprintf("thres_stop_R  = %s pi \n", rats(thres_stop_R/pi,5));
+fprintf("t_half_len    = %s pi \n", rats(t_list(1).sigma/pi,5));
+fprintf("thres_stop_t  = %s pi \n", rats(thres_stop_t/pi,5));
+fprintf("epipole_thres =  %f \n\n",  epipole_thres);
 
 tic;
 
-st = StereoRT(p, q, R_list, thres_stop_R, t_list, thres_stop_t, delta, epipole_thres);
+st = StereoRT(p, q, R_list, thres_stop_R, t_list, thres_stop_t, delta, epipole_thres, known_corr);
 [st, solutions] = st.findSolutions();
 
 toc;
@@ -100,7 +109,7 @@ fprintf("Displaying up to 5:\n");
 
 num_sol = size(solutions,2);
 for s = 1: min(num_sol, 5)
-    fprintf("Solution %d: [%d %d %d], sigma: %d pi, score: %d rpy: [%d %d %d]\n", s, solutions(s).centre, solutions(s).sigma/pi, solutions(s).LB, R2rpy(solutions(s).aa2mat()));
+    fprintf("Solution %d: [%d %d %d], sigma: %s pi, score: %d rpy: [%d %d %d]\n", s, solutions(s).centre, rats(solutions(s).sigma/pi,5), solutions(s).LB, R2rpy(solutions(s).aa2mat()));
     % For each R, plot 1 solution matrix representing one possible t
     figure, imagesc(solutions(s).patches(1).edges_stop);
 end

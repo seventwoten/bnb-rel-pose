@@ -80,7 +80,7 @@ tic;
 
 % Set threshold variables
 delta      = 0;             % minimum angular error in Rp and q 
-thres_stop = 1/64 * pi;     % stop at this patch size
+thres_stop = 1/512 * pi;     % stop at this patch size
 R_half_len = 1/64 * pi;     % find T given an R block of this size
 t_half_len = 1/4 * pi;      % search within an initial T patch of this size 
 
@@ -88,12 +88,21 @@ t_half_len = 1/4 * pi;      % search within an initial T patch of this size
 R_block = RCube(axis_angle, R_half_len);
 
 % Get spherical wedges corresponding to Rp-q pairs
-stRT = StereoRT(p, q, [], [], [], [], [], [], delta, []);
-[n1, n2] = stRT.getWedges(R_block, R_block.thres);
+stRT = StereoRT(p, q, [], [], [], [], delta, [], []);
+[n1, n2] = stRT.getWedges(R_block, p, q, R_block.thres);
 
 % Start T search within initial patch (centred at ground truth)
-stT = StereoT(p, q, n1, n2, t_long_lat, t_half_len, thres_stop, []);
-[stT, solutions] = stT.findSolutions(false);
+% t_list = tPatch(t_long_lat, t_half_len);
+t_list = [tPatch([pi/4   , pi/4  ], t_half_len),...
+          tPatch([3*pi/4 , pi/4  ], t_half_len),...
+          tPatch([-pi/4  , pi/4  ], t_half_len),...
+          tPatch([-3*pi/4, pi/4  ], t_half_len),...
+          tPatch([pi/4   , 3*pi/4], t_half_len),...
+          tPatch([3*pi/4 , 3*pi/4], t_half_len),...
+          tPatch([-pi/4  , 3*pi/4], t_half_len),...
+          tPatch([-3*pi/4, 3*pi/4], t_half_len)];
+stT = StereoT(p, q, n1, n2, t_list, thres_stop, []);
+[stT, solutions] = stT.findSolutions(true, true);
 
 toc;
 
