@@ -85,32 +85,36 @@ classdef StereoT < StereoInterface
         end
         
         function [obj, solutions] = findSolutions(obj, early_stop, parallel_mode)
-            if ~exist('parallel_mode','var')
+            if ~exist('parallel_mode','var') || isa(obj.t_list,'tPatchList')
                 % Default mode: process t blocks in parallel
                 parallel_mode = true;
             end
             
             if parallel_mode
-                Nt = numel(obj.t_list);
-                if Nt == 1
-                    init_list = tPatchList(obj.t_list.centre, obj.t_list.sigma);
-                    init_list = init_list.subdivide();
-                else
-                    centres = zeros(Nt, 2);
-                    sigmas  = zeros(Nt, 1);
-                    for i = 1:Nt
-                        % Extract centres and sigmas from list of tPatches
-                        centres(i, :) = obj.t_list(i).centre;
-                        sigmas(i)     = obj.t_list(i).sigma;
-                    end
+                if isa(obj.t_list,'tPatchList')
+                    init_list = obj.t_list;
+                else % Wrap list of tPatch objects into tPatchList
+                    Nt = numel(obj.t_list);
+                    if Nt == 1
+                        init_list = tPatchList(obj.t_list.centre, obj.t_list.sigma);
+                        init_list = init_list.subdivide();
+                    else
+                        centres = zeros(Nt, 2);
+                        sigmas  = zeros(Nt, 1);
+                        for i = 1:Nt
+                            % Extract centres and sigmas from list of tPatches
+                            centres(i, :) = obj.t_list(i).centre;
+                            sigmas(i)     = obj.t_list(i).sigma;
+                        end
 
-                    % Enforce equal sigmas 
-                    assert(all(abs(sigmas - sigmas(1)) < 1e-8), 'Size of initial t-patches must be the same');
-                    init_list = tPatchList(centres, sigmas(1));
+                        % Enforce equal sigmas
+                        assert(all(abs(sigmas - sigmas(1)) < 1e-8), 'Size of initial t-patches must be the same');
+                        init_list = tPatchList(centres, sigmas(1));
+                    end
                 end
                 
                 obj = obj.bnbList(init_list, obj.thres_stop_t, early_stop); 
-            else
+            else % Non-parallel mode
                 init_list = obj.t_list;
                 if numel(init_list) == 1
                     init_list = init_list.subdivide();
