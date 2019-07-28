@@ -27,7 +27,7 @@ classdef StereoT < StereoInterface
             
             if isempty(t_list)
                 % default t range to search
-                obj.t_list = [tPatch([0, 0], pi/2), tPatch([0, pi], pi/2)];
+                obj.t_list = [tPatch([0,pi/2], pi/2), tPatch([pi,pi/2], pi/2)];
             else
                 obj.t_list = t_list;
             end
@@ -148,7 +148,7 @@ classdef StereoT < StereoInterface
 
                 % Compute all lower bounds with stopping threshold
                 blk = obj.updateLowerBound(blk, thres_stop);
-                fprintf(['Lower bound: [', repmat('%d ',[1,size(blk.LB,1)]), '] \n'], blk.LB);
+                fprintf(['Lower bound: [', repmat('%d ',[1,min(numel(blk.LB), 20)]), '] \n'], blk.LB(1: min(numel(blk.LB), 20))); 
                 
                 % Compute block upper bound at sqrt(3)-sigma threshold
                 if blk.thres <= thres_stop % blk.LB == max_matches ||
@@ -156,7 +156,7 @@ classdef StereoT < StereoInterface
                 else
                     blk = obj.updateUpperBound(blk);
                 end
-                fprintf(['Upper bound: [', repmat('%d ',[1,size(blk.UB,1)]), '] \t'], blk.UB);
+                fprintf(['Upper bound: [', repmat('%d ',[1,min(numel(blk.UB), 20)]), '] \t'], blk.UB(1: min(numel(blk.UB), 20)));
 
                 % Update e_max
                 max_LB = max(blk.LB);
