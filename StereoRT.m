@@ -100,7 +100,7 @@ classdef StereoRT < StereoInterface
             
         end
         
-        function [t_list] = wedge2patches(obj, n1_wedge, n2_wedge)
+        function [t_list] = wedge2patches(obj, n1_wedge, n2_wedge, min_size)
             %SETCONTEXT Convert a single wedge into a list of tPatches.
             %   Align wedge to z-axis, divide into patches, and rotate back.
             
@@ -134,8 +134,11 @@ classdef StereoRT < StereoInterface
             wedge_centre_aln = R_align * wedge_centre';
             
             % Find number and size of patches along wedge width
-            num_theta      = ceil( wedge_width / (2*obj.t_half_len_stop) );
-            patch_half_len = obj.t_half_len_stop;
+            if ~exist('min_size', 'var') || isempty(min_size)
+                min_size = max(pi/16, obj.t_half_len_stop);
+            end
+            num_theta      = ceil( wedge_width / (2*min_size) );
+            patch_half_len = min_size;
             while mod(num_theta, 2) == 0
                 num_theta      = num_theta  / 2;
                 patch_half_len = patch_half_len * 2;
