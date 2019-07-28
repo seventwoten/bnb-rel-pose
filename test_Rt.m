@@ -25,10 +25,11 @@ R_list       = [RCube([-3/8 * pi, -3/8 * pi, 0], pi/8), RCube([    -pi/8, -3/8 *
                 RCube([     pi/8,  3/8 * pi, 0], pi/8), RCube([ 3/8 * pi,  3/8 * pi, 0], pi/8)];
 t_list       = [tPatch([0,pi/2], pi/2), tPatch([pi,pi/2], pi/2)];
 
-delta        = 0;             % minimum angular error in Rp and q 
-thres_stop_R = 1/32 * pi;     % Stop when cube diagonal drops below this value
-thres_stop_t = 1/64 * pi;     % Stop when patch diagonal drops below this value
+delta         = 0;             % minimum angular error in Rp and q 
+thres_stop_R  = 1/256 * pi;   % Stop when cube diagonal drops below this value
+thres_stop_t  = 1/256 * pi;   % Stop when patch diagonal drops below this value
 epipole_thres = 0.7;          % Reject points that match more than this fraction of points
+early_stop    = true;         % Set to true to return first viable solution
 
 % Print output to diary file
 timestamp = [datestr(now,'yyyy-mm-dd','local'),'_',datestr(now,'hh.MM.ss','local')];
@@ -41,12 +42,14 @@ fprintf("R_half_len    = %s pi \n", rats(R_list(1).sigma/pi,5));
 fprintf("thres_stop_R  = %s pi \n", rats(thres_stop_R/pi,5));
 fprintf("t_half_len    = %s pi \n", rats(t_list(1).sigma/pi,5));
 fprintf("thres_stop_t  = %s pi \n", rats(thres_stop_t/pi,5));
-fprintf("epipole_thres =  %f \n\n", epipole_thres);
+fprintf("epipole_thres =  %f \n",   epipole_thres);
+fprintf("early_stop    =  %d \n\n", early_stop);
+
 
 tic;
 
 st = StereoRT(p, q, R_list, thres_stop_R, t_list, thres_stop_t, delta, epipole_thres, known_corr);
-[st, solutions] = st.findSolutions();
+[st, solutions] = st.findSolutions(early_stop);
 fprintf("--------");
 
 toc;

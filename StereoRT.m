@@ -201,12 +201,17 @@ classdef StereoRT < StereoInterface
             block.UB = st.e_max;
         end
         
-        function [obj, solutions] = findSolutions(obj)
+        function [obj, solutions] = findSolutions(obj, early_stop)
+            % Default: Return all surviving blocks as solutions
+            if ~exist('early_stop', 'var') || isempty(early_stop)
+                early_stop = false;
+            end
+            
             init_list = obj.R_list;
             if numel(init_list) == 1
                 init_list = init_list.subdivide();
             end
-            obj = obj.bnb(init_list, obj.thres_stop_R, false); 
+            obj = obj.bnb(init_list, obj.thres_stop_R, early_stop);
             solutions = obj.solutions;
         end
         
