@@ -94,6 +94,37 @@ classdef RCube < block
 
             rpy = [r, p, y];
         end
+        
+        function [u] = R2aa(R)
+            %R2AA Converts an R matrix to a scaled axis-angle
+            %representation (vector direction is axis, magnitude is angle) 
+            if sum(sum(abs(R - eye(3)))) < 1e-6
+                u = [0,0,0];
+            else
+                u3sin_a = (R(2,1) - R(1,2)) / 2;
+                u1sin_a = (R(3,2) - R(2,3)) / 2;
+                u2sin_a = (R(1,3) - R(3,1)) / 2;
+                
+                u = [u1sin_a, u2sin_a, u3sin_a]; 
+                abs_sin_a = sqrt(sum(u.^2));
+                u = u ./ abs_sin_a;
+                
+                % u direction is such that alpha is between -pi and pi
+                if u(1) > 1e-6 || u(2) > 1e-6
+                    cos_a = 1 - (R(1,1) - R(2,2))/(u(1)*u(1) - u(2)*u(2));
+                else % u(3) > 1e-6
+                    cos_a = 1 - (R(1,1) - R(3,3))/(u(1)*u(1) - u(3)*u(3));
+                end
+                
+                alpha = atan2(abs_sin_a, cos_a);
+                if alpha <= -pi || alpha > pi
+                    u = -u;
+                    alpha = atan2(-abs_sin_a, cos_a);
+                end
+                
+                u = u .* alpha;
+            end
+        end
     end
 end
 
