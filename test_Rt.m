@@ -58,8 +58,12 @@ fprintf("Number of solutions: %d (Displaying up to 5)\n", size(solutions,2));
 
 num_sol = size(solutions,2);
 for s = 1: min(num_sol, 5)
-    fprintf("Solution %d:   aa = [%f %f %f], rpy: [%f %f %f], theta-phi = [%f %f], score: %d \n", ...
-            s, solutions(s).centre, RCube.R2rpy(solutions(s).aa2mat()), solutions(s).patches(1).centre, solutions(s).LB);
+    % Report R and t angular error
+    R_err = StereoInterface.angles([0,0,1]*solutions(s).aa2mat()', [0,0,1] * scene.cam2_R');
+    t_err = StereoInterface.angles(solutions(s).patches(1).centre_xyz, scene.cam2_xyz);
+    fprintf("Solution %d:   aa = [%f %f %f], rpy: [%f %f %f], theta-phi = [%f %f], score: %d, R-error: %f (%f deg), t-error: %f (%f deg)\n", ...
+            s, solutions(s).centre, RCube.R2rpy(solutions(s).aa2mat()), solutions(s).patches(1).centre, solutions(s).LB, ...
+            R_err, rad2deg(R_err), t_err, rad2deg(t_err));
     % For each R, plot 1 solution matrix representing one possible t
     figure, imagesc(solutions(s).patches(1).edges_stop);
 end
