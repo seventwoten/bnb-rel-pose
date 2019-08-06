@@ -5,6 +5,7 @@ classdef StereoRT < StereoInterface
     properties
         p_known
         q_known
+        possibleMatches    % Np x Nq mask for including only possible matches
         
         R_list             % List of RCubes
         thres_stop_R
@@ -23,7 +24,7 @@ classdef StereoRT < StereoInterface
     end
     
     methods
-        function obj = StereoRT(p, q, R_list, R_sigma_stop, t_list, t_half_len_stop, delta, epipole_threshold, corr_indices)
+        function obj = StereoRT(p, q, R_list, R_sigma_stop, t_list, t_half_len_stop, delta, epipole_threshold, corr_indices, possible_matches)
             %STEREORT Construct an instance of this class
             %   Detailed explanation goes here
             obj = obj@StereoInterface(p, q);
@@ -31,6 +32,11 @@ classdef StereoRT < StereoInterface
             obj.t_half_len_stop = t_half_len_stop;
             obj.delta = delta;
             obj.epipole_threshold = epipole_threshold;
+            
+            if exist('possible_matches', 'var') && ~isempty(possible_matches)
+                assert(size(possible_matches, 1) == obj.Np && size(possible_matches, 2) == obj.Nq, 'PossibleMatches is the wrong size');
+                obj.possibleMatches = possible_matches;
+            end
             
             % Separate out known correspondence
             if ~isempty(corr_indices)
@@ -40,6 +46,8 @@ classdef StereoRT < StereoInterface
                 obj.q(corr_indices(:,2), :) = [];
                 obj.Np = size(obj.p, 1);
                 obj.Nq = size(obj.q, 1);
+                obj.possibleMatches(corr_indices(:,1), :) = [];
+                obj.possibleMatches(:, corr_indices(:,2)) = [];
             end
             
             if isempty(R_list)
@@ -179,7 +187,7 @@ classdef StereoRT < StereoInterface
             tlist = obj.updateTList(block, obj.t_list, obj.thres_stop_R);
             
             % Pass near-epipole check option to T search, only at R stopping threshold
-            st = StereoT(obj.p, obj.q, obj.n1_LB, obj.n2_LB, tlist, obj.t_half_len_stop, obj.epipole_threshold);
+            st = StereoT(obj.p, obj.q, obj.n1_LB, obj.n2_LB, tlist, obj.t_half_len_stop, obj.epipole_threshold, obj.possibleMatches);
             fprintf("{\n");
             st = st.findSolutions(true); % early_stop = true
             fprintf("}\n");
@@ -194,7 +202,7 @@ classdef StereoRT < StereoInterface
             % Update T search list if known correspondence exists
             tlist = obj.updateTList(block, obj.t_list, block.thres);
             
-            st = StereoT(obj.p, obj.q, obj.n1_UB, obj.n2_UB, tlist, obj.t_half_len_stop, -1);
+            st = StereoT(obj.p, obj.q, obj.n1_UB, obj.n2_UB, tlist, obj.t_half_len_stop, -1, obj.possibleMatches);
             fprintf("{\n");
             st = st.findSolutions(true); % early_stop = true
             fprintf("}\n");

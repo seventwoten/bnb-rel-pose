@@ -14,10 +14,11 @@ classdef StereoT < StereoInterface
         
         angleMat1
         angleMat2
+        possibleMatches % Np x Nq mask for including only possible matches
     end
     
     methods
-        function obj = StereoT(p, q, n1, n2, t_list, t_half_len_stop, epipole_threshold)
+        function obj = StereoT(p, q, n1, n2, t_list, t_half_len_stop, epipole_threshold, possible_matches)
             %STEREOT Construct an instance of this class
             %   (pass in [] to use default values)
             obj = obj@StereoInterface(p, q);
@@ -45,6 +46,10 @@ classdef StereoT < StereoInterface
                 obj.max_edges_q = epipole_threshold * obj.Np;
             end
             
+            if exist('possible_matches', 'var') && ~isempty(possible_matches)
+                assert(size(possible_matches, 1) == obj.Np && size(possible_matches, 2) == obj.Nq, 'PossibleMatches is the wrong size');
+                obj.possibleMatches = possible_matches;
+            end
             
         end
         
@@ -68,6 +73,12 @@ classdef StereoT < StereoInterface
                     block.edges_stop(:, cols(:,:,i), i)= 0;
                 end
             end
+            
+            % Filter to include possible matches only
+            if ~isempty(obj.possibleMatches)
+                block.edges_stop = block.edges_stop & obj.possibleMatches;
+            end
+            
             for i = 1:size(block.edges_stop, 3)
                 block.LB(i) = obj.getMaxBipartiteMatching(block.edges_stop(:,:,i));
             end
@@ -78,6 +89,11 @@ classdef StereoT < StereoInterface
             assert(~isempty(obj.angleMat1) & ~isempty(obj.angleMat2), 'Context was not set');
             positiveRange = pi/2 + block.thres;
             edges = ((obj.angleMat1 < positiveRange) & (obj.angleMat2 < positiveRange));
+            
+            % Filter to include possible matches only
+            if ~isempty(obj.possibleMatches)
+                edges = edges & obj.possibleMatches;
+            end
             
             for i = 1:size(edges, 3)
                 block.UB(i) = obj.getMaxBipartiteMatching(edges(:,:,i));

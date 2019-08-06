@@ -11,8 +11,10 @@ scene = s30(scene_num);
 p = scene.view2;
 q = scene.view1;
 
-known_corr = [1,1];    % set to [] for no known correspondences
+known_corr = []; % [1,1];    % set to [] for no known correspondences
 if (size(known_corr, 1) == 1); diary_corr = '1c_'; else; diary_corr = []; end
+
+possible_matches = blkdiag(true, true(29)); %set to [] to allow all pairings
 
 % Set search variables
 R_list       = [RCube([-3/8 * pi, -3/8 * pi, 0], pi/8), RCube([    -pi/8, -3/8 * pi, 0], pi/8), ...
@@ -48,7 +50,7 @@ fprintf("early_stop    =  %d \n\n", early_stop);
 
 tic;
 
-st = StereoRT(p, q, R_list, thres_stop_R, t_list, thres_stop_t, delta, epipole_thres, known_corr);
+st = StereoRT(p, q, R_list, thres_stop_R, t_list, thres_stop_t, delta, epipole_thres, known_corr, possible_matches);
 [st, solutions] = st.findSolutions(early_stop);
 fprintf("--------");
 
