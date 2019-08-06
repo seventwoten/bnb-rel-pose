@@ -14,7 +14,7 @@ classdef Scene
         cam_range_cen   = [0,0,2]
         cam_range_rad   = 2
         cam_range_theta = [0, 2*pi] 
-        cam_range_phi   = [pi/2, 3/4 * pi] % Second camera is 45-90 deg away in phi dimension
+        cam_range_phi   = [0, 2*pi] %[pi/2, 3/4 * pi] % Second camera is 45-90 deg away in phi dimension
         
         % Camera parameters
         f  = 1              % focal length
@@ -33,8 +33,8 @@ classdef Scene
         cam2_rpy = [0, 0, 0]
         cam2_aa  = [0, 0, 0]
 
-        % Pixel noise standard deviation
-        noise_sd = 0.0008
+        % Image vector noise standard deviation (radians)
+        noise_sd = 5.7596e-04
         
         % 2d views of 3d scene
         view1
@@ -96,13 +96,13 @@ classdef Scene
             % with Gaussian noise in pixel positions of N(0, noise_sd^2). 
             
             [uv] = obj.projectPoints(obj.cam1_xyz, obj.cam1_R);
+            obj.view1 = [uv, repmat(obj.f, size(uv, 1), 1)];
             
             % Add Gaussian noise
-            if exist('noise_sd', 'var') && ~isempty(noise_sd)
-                obj.noise_sd = noise_sd;
+            if ~exist('noise_sd', 'var') || isempty(noise_sd)
+                noise_sd = obj.noise_sd;
             end
-            noise = random('Normal', 0, obj.noise_sd, [obj.N,2]);
-            obj.view1 = [uv+noise, repmat(obj.f, size(uv, 1), 1)];
+            obj.view1 = obj.addNoise(obj.view1, noise_sd);
         end
         
         function obj = setView2(obj, noise_sd)
@@ -110,13 +110,13 @@ classdef Scene
             % with Gaussian noise in pixel positions of N(0, noise_sd^2). 
             
             [uv] = obj.projectPoints(obj.cam2_xyz, obj.cam2_R);
+            obj.view2 = [uv, repmat(obj.f, size(uv, 1), 1)];
             
             % Add Gaussian noise
-            if exist('noise_sd', 'var') && ~isempty(noise_sd)
-                obj.noise_sd = noise_sd;
+            if ~exist('noise_sd', 'var') || isempty(noise_sd)
+                noise_sd = obj.noise_sd;
             end
-            noise = random('Normal', 0, obj.noise_sd, [obj.N,2]);
-            obj.view2 = [uv+noise repmat(obj.f, size(uv, 1), 1)];
+            obj.view2 = obj.addNoise(obj.view2, noise_sd);
         end
         
         function [uv] = projectPoints(obj, cam_pos, cam_or)
@@ -142,6 +142,30 @@ classdef Scene
             u(s(:, 3) < 0) = inf;
             v(s(:, 3) < 0) = inf;
             uv = [u v];
+        end
+    end
+    
+    methods (Static)
+        
+        function [img_n] = addNoise(img, noise_sd)
+            % Adds angular noise to image points with std. dev. noise_sd
+            
+            img_n = zeros(size(img));
+            for i = 1:size(img,1)
+                % For each image vector, find a perpendicular rotation axis
+                xy = rand(1,2);
+                z = -( xy(1)*img(i,1) + xy(2)*img(i,2) ) ./ img(i,3);
+                axis = [xy, z];
+                
+                % Scale the axis by the magnitude of the noise
+                noise = random('Normal', 0, noise_sd);
+                axis = axis ./ sqrt(sum(axis.^2)) .* noise;
+                
+                % Convert to rotation matrix to perturb the vector
+                R = RCube(axis, 1).aa2mat();
+                img_n(i,:) = R * img(i, :)';
+            end
+            
         end
         
     end
