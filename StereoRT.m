@@ -109,6 +109,18 @@ classdef StereoRT < StereoInterface
             has_overlap = obj.angleMat < e_p + e_q;
             normals1(has_overlap(:,:,[1,1,1])) = 0;
             normals2(has_overlap(:,:,[1,1,1])) = 0;
+            
+            % Zero out normals that are complex (Rp, q cannot form wedge)
+            for i = 1:size(normals1,1)
+                for j = 1:size(normals1,2)
+                    if ~isreal(normals1(i, j, :))
+                        normals1(i, j, :) = 0;
+                    end
+                    if ~isreal(normals2(i, j, :))
+                        normals2(i, j, :) = 0;
+                    end
+                end
+            end
         end
         
         function [t_list] = wedge2patches(obj, n1_wedge, n2_wedge, min_size)
