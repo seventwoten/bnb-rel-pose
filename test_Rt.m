@@ -5,16 +5,20 @@ close all; clear all;
 
 % Set scene variables
 load('scenes\s30.mat');
-scene_num = 1;
+
+for scene_num = 1:10
 scene = s30(scene_num);
 
 p = scene.view2;
 q = scene.view1;
 
-known_corr = []; % [1,1];    % set to [] for no known correspondences
-if (size(known_corr, 1) == 1); diary_corr = '1c_'; else; diary_corr = []; end
+% Experiment parameters
+known_corr = [1,1];    % set to [] for no known correspondences
+possible_matches = []; blkdiag(true, true(scene.N-1)); %set to [] to allow all pairings
 
-possible_matches = blkdiag(true, true(29)); %set to [] to allow all pairings
+expt_name  = [];
+if (size(known_corr, 1) == 1); expt_name = '1c_'; end
+if (size(possible_matches, 1) ~= 0); expt_name = '1p_'; end
 
 % Set search variables
 R_list       = [RCube([-3/8 * pi, -3/8 * pi, 0], pi/8), RCube([    -pi/8, -3/8 * pi, 0], pi/8), ...
@@ -27,23 +31,23 @@ R_list       = [RCube([-3/8 * pi, -3/8 * pi, 0], pi/8), RCube([    -pi/8, -3/8 *
                 RCube([     pi/8,  3/8 * pi, 0], pi/8), RCube([ 3/8 * pi,  3/8 * pi, 0], pi/8)];
 t_list       = [tPatch([0,pi/2], pi/2), tPatch([pi,pi/2], pi/2)];
 
-delta         = 0;             % minimum angular error in Rp and q 
-thres_stop_R  = 1/256 * pi;   % Stop when cube diagonal drops below this value
-thres_stop_t  = 1/256 * pi;   % Stop when patch diagonal drops below this value
+delta         = 0.00873;      % minimum angular error in Rp and q
+thres_stop_R  = 0;            % Stop when cube half-length drops below this value
+thres_stop_t  = 1/256 * pi;   % Stop when patch half-length drops below this value
 epipole_thres = 0.7;          % Reject points that match more than this fraction of points
 early_stop    = true;         % Set to true to return first viable solution
 
 % Print output to diary file
 timestamp = [datestr(now,'yyyy-mm-dd','local'),'_',datestr(now,'hh.MM.ss','local')];
-diary([['diary\diary_Rt_', num2str(scene.N),'.',num2str(scene_num),'_', diary_corr], timestamp, '.txt'])
+diary([['diary\diary_Rt_', num2str(scene.N),'.',num2str(scene_num),'_', expt_name], timestamp, '.txt'])
 diary on;
 
 fprintf("test_Rt: \n");
 fprintf("delta         =  %f \n",   delta);
-fprintf("R_half_len    = %s pi \n", rats(R_list(1).sigma/pi,5));
-fprintf("thres_stop_R  = %s pi \n", rats(thres_stop_R/pi,5));
-fprintf("t_half_len    = %s pi \n", rats(t_list(1).sigma/pi,5));
-fprintf("thres_stop_t  = %s pi \n", rats(thres_stop_t/pi,5));
+fprintf("R_half_len    = %s pi \n", rats(R_list(1).sigma/pi,6));
+fprintf("thres_stop_R  = %s pi \n", rats(thres_stop_R/pi,6));
+fprintf("t_half_len    = %s pi \n", rats(t_list(1).sigma/pi,6));
+fprintf("thres_stop_t  = %s pi \n", rats(thres_stop_t/pi,6));
 fprintf("epipole_thres =  %f \n",   epipole_thres);
 fprintf("early_stop    =  %d \n\n", early_stop);
 
@@ -76,4 +80,5 @@ fprintf("Ground truth: aa = [%f %f %f], rpy = [%f %f %f], theta-phi = [%f %f]\n"
 diary off;
 
 % Save solutions to .mat file
-save(['solutions\Rt_', num2str(scene.N),'.',num2str(scene_num),'_',diary_corr, timestamp, '.mat'],'solutions');
+save(['solutions\Rt_', num2str(scene.N),'.',num2str(scene_num),'_',expt_name, timestamp, '.mat'],'solutions');
+end

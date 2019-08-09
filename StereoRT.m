@@ -46,8 +46,10 @@ classdef StereoRT < StereoInterface
                 obj.q(corr_indices(:,2), :) = [];
                 obj.Np = size(obj.p, 1);
                 obj.Nq = size(obj.q, 1);
-                obj.possibleMatches(corr_indices(:,1), :) = [];
-                obj.possibleMatches(:, corr_indices(:,2)) = [];
+                if ~isempty(obj.possibleMatches)
+                    obj.possibleMatches(corr_indices(:,1), :) = [];
+                    obj.possibleMatches(:, corr_indices(:,2)) = [];
+                end
             end
             
             if isempty(R_list)
@@ -82,11 +84,13 @@ classdef StereoRT < StereoInterface
             sin_e_p = sin(e_p);
             sin_e_q = sin(e_q);
 
-            sin2beta_num = (sin_e_p^2 + (2 * sin_e_p * sin_e_q * cos(obj.angleMat)) + sin_e_q^2); 
+            sq_terms = sin_e_p .* sin_e_p + sin_e_q .* sin_e_q;
+            coeff_cos = 2 .* sin_e_p .* sin_e_q;
+            sin2beta_num = sq_terms + (coeff_cos .* cos(obj.angleMat));
             sin2beta = sin2beta_num ./ ((sin(obj.angleMat)) .^ 2); 
             sin_beta = sqrt(sin2beta); % Np x Nq
 
-            % Pairwise combinations of Rp and context.q 
+            % Pairwise combinations of Rp and q
             y_num = permute(sin_e_p * reshape(q', 1,3,[]) + sin_e_q * Rp, [1,3,2]);
             y_den = sin_beta .* sin(obj.angleMat);
 
@@ -105,7 +109,6 @@ classdef StereoRT < StereoInterface
             has_overlap = obj.angleMat < e_p + e_q;
             normals1(has_overlap(:,:,[1,1,1])) = 0;
             normals2(has_overlap(:,:,[1,1,1])) = 0;
-            
         end
         
         function [t_list] = wedge2patches(obj, n1_wedge, n2_wedge, min_size)

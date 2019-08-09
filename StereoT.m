@@ -172,12 +172,12 @@ classdef StereoT < StereoInterface
                 else
                     blk = obj.updateUpperBound(blk);
                 end
-                fprintf(['Upper bound: [', repmat('%d ',[1,min(numel(blk.UB), 20)]), '] \t'], blk.UB(1: min(numel(blk.UB), 20)));
+                fprintf(['Upper bound: [', repmat('%d ',[1,min(numel(blk.UB), 20)]), '] '], blk.UB(1: min(numel(blk.UB), 20)));
 
                 % Update e_max
                 max_LB = max(blk.LB);
                 if max_LB > 0 && max_LB >= obj.e_max
-                    fprintf("Replaced e_max %d with %d.\n", obj.e_max, max_LB);
+                    fprintf("\tReplaced e_max %d with %d.", obj.e_max, max_LB);
                     obj.e_max = max_LB;
                     
                     % Add blocks to solutions (quick fix for runs that terminate with no solutions)
@@ -189,10 +189,11 @@ classdef StereoT < StereoInterface
                 if blk.thres > thres_stop
                     blk = blk.subdivide(blk.UB > 0 & blk.UB >= obj.e_max);
                 else
-                    fprintf("Stopping threshold reached\n");
+                    fprintf("\tStopping threshold reached");
                     add_solution(blk.UB > 0 & blk.UB >= obj.e_max) = true;
                     blk.Nb = 0;
                 end
+                fprintf("\n");
                 
                 % Add solution from blk_cache if flag is true
                 indices = find(add_solution);
