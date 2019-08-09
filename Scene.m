@@ -14,8 +14,8 @@ classdef Scene
         cam_range_cen   = [0,0,2]
         cam_range_rad   = 2
         cam_range_theta = [0, 2*pi] 
-        cam_range_phi   = [0, 2*pi] %[pi/2, 3/4 * pi] % Second camera is 45-90 deg away in phi dimension
-        
+        cam_range_phi   = [pi/2, 3/4 * pi] % Second camera is 45-90 deg away in phi dimension
+        cam_range_tilt  = [-pi/8, pi/8]    % Tilt within +/- 22.5 deg
         % Camera parameters
         f  = 1              % focal length
         bu = 1, bv = 1      % scaling factors
@@ -64,6 +64,10 @@ classdef Scene
                 obj.cam2_R  = RCube.rpy2R(rpy(1),rpy(2),rpy(3));
                 obj.cam2_aa = RCube.R2aa(obj.cam2_R);
             else
+                % Tilt camera randomly between +/- pi/4
+                aa = [0,0, rand() * (obj.cam_range_tilt(2) - obj.cam_range_tilt(1)) + obj.cam_range_tilt(1)];
+                R_tilt = RCube(aa, 1).aa2mat();
+                
                 % Position second camera randomly in given ranges, at cam_range_rad from scene centre
                 theta_scene = rand() * (obj.cam_range_theta(2) - obj.cam_range_theta(1)) + obj.cam_range_theta(1);
                 phi_scene   = rand() * (  obj.cam_range_phi(2) -   obj.cam_range_phi(1)) + obj.cam_range_phi(1);
@@ -81,10 +85,13 @@ classdef Scene
 
                 c = [0,0,1] * -cam_pos2_unit';
                 if abs(c-1) < 1e-8 || abs(c+1) < 1e-8
-                    obj.cam2_R = eye(3);
+                    R = eye(3);
                 else
-                    obj.cam2_R = eye(3) + v_x + (v_x * v_x ./ (1+c));
+                    R = eye(3) + v_x + (v_x * v_x ./ (1+c));
                 end
+                
+                % Final rotation: combine tilt and pointing
+                obj.cam2_R = R * R_tilt;
                 
                 obj.cam2_rpy = RCube.R2rpy(obj.cam2_R);
                 obj.cam2_aa  = RCube.R2aa(obj.cam2_R);
