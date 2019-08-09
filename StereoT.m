@@ -186,11 +186,16 @@ classdef StereoT < StereoInterface
                 
                 % Discard or subdivide/terminate current blocks
                 blk_cache = blk;
+                surviving_blocks =  blk.UB > 0 & blk.UB >= obj.e_max;
                 if blk.thres > thres_stop
-                    blk = blk.subdivide(blk.UB > 0 & blk.UB >= obj.e_max);
+                    if any(surviving_blocks)
+                        blk = blk.subdivide(surviving_blocks);
+                    else % No more subdivision - terminate
+                        blk.Nb = 0;
+                    end
                 else
                     fprintf("\tStopping threshold reached");
-                    add_solution(blk.UB > 0 & blk.UB >= obj.e_max) = true;
+                    add_solution(surviving_blocks) = true;
                     blk.Nb = 0;
                 end
                 fprintf("\n");
