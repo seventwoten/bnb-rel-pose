@@ -87,9 +87,12 @@ classdef StereoT < StereoInterface
         end
         
         function [block] = updateUpperBound(obj, block)
-            %UPDATEUPPERBOUND Update block upper bound at threshold
+            %UPDATEUPPERBOUND Update block upper bound at threshold(s) in block.thres
             assert(~isempty(obj.angleMat1) & ~isempty(obj.angleMat2), 'Context was not set');
             positiveRange = pi/2 + block.thres;
+            if numel(positiveRange) > 1
+                positiveRange = reshape(positiveRange, 1, 1, numel(positiveRange)); 
+            end
             edges = ((obj.angleMat1 < positiveRange) & (obj.angleMat2 < positiveRange));
             
             % Filter to include possible matches only
