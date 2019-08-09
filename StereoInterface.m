@@ -66,7 +66,7 @@ classdef StereoInterface
                 fprintf("Iteration %d   sigma: %d pi e_max = %d\n", iter, blk.sigma/pi, obj.e_max);
 
                 % Compute block lower bound with stopping threshold
-                blk = obj.updateLowerBound(blk, thres_stop);
+                blk = obj.updateLowerBound(blk);
                 fprintf("Lower bound: %d\n", blk.LB);
 
                 % Compute block upper bound at sqrt(3)-sigma threshold

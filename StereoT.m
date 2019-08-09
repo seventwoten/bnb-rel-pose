@@ -5,8 +5,9 @@ classdef StereoT < StereoInterface
     properties
         n1
         n2
-        t_list         % List of tPatches
-        thres_stop_t
+        t_list          % List of tPatches
+        t_half_len_stop % Stop at this patch size (affects solution accuracy)
+        thres_stop_t    % Angle of lower bound cone, from stopping patch size
         
         check_epipole  % option to turn on near-epipole check
         max_edges_p    % reject p points near epipole with edges > max_edges_p
@@ -24,6 +25,7 @@ classdef StereoT < StereoInterface
             obj = obj@StereoInterface(p, q);
             obj.n1 = n1;
             obj.n2 = n2;
+            obj.t_half_len_stop = t_half_len_stop;
             obj.thres_stop_t = acos(cos(t_half_len_stop)^2);
             
             if isempty(t_list)
@@ -58,10 +60,10 @@ classdef StereoT < StereoInterface
             obj.angleMat2 = obj.findAnglesToNormals(block.centre_xyz, obj.n2);
         end
         
-        function [block] = updateLowerBound(obj, block, thres_stop) 
+        function [block] = updateLowerBound(obj, block) 
             %UPDATELOWERBOUND Update block lower bound at stopping threshold
             assert(~isempty(obj.angleMat1) & ~isempty(obj.angleMat2), 'Context was not set');
-            positiveRange = pi/2 + thres_stop;
+            positiveRange = pi/2 + obj.thres_stop_t;
             block.edges_stop = ((obj.angleMat1 < positiveRange) & (obj.angleMat2 < positiveRange));
             
             % Near-epipole check: Remove rows/columns that match too many points
@@ -163,11 +165,11 @@ classdef StereoT < StereoInterface
                 fprintf("Iteration %d   sigma: %d pi e_max = %d\n", iter, blk.sigma/pi, obj.e_max);
 
                 % Compute all lower bounds with stopping threshold
-                blk = obj.updateLowerBound(blk, thres_stop);
+                blk = obj.updateLowerBound(blk);
                 fprintf(['Lower bound: [', repmat('%d ',[1,min(numel(blk.LB), 20)]), '] \n'], blk.LB(1: min(numel(blk.LB), 20))); 
                 
                 % Compute block upper bound at sqrt(3)-sigma threshold
-                if blk.thres <= thres_stop % blk.LB == max_matches ||
+                if blk.sigma <= obj.t_half_len_stop % blk.LB == max_matches ||
                     blk.UB = blk.LB;
                 else
                     blk = obj.updateUpperBound(blk);
@@ -187,7 +189,7 @@ classdef StereoT < StereoInterface
                 % Discard or subdivide/terminate current blocks
                 blk_cache = blk;
                 surviving_blocks =  blk.UB > 0 & blk.UB >= obj.e_max;
-                if blk.thres > thres_stop
+                if blk.sigma > obj.t_half_len_stop
                     if any(surviving_blocks)
                         blk = blk.subdivide(surviving_blocks);
                     else % No more subdivision - terminate

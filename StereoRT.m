@@ -194,7 +194,7 @@ classdef StereoRT < StereoInterface
             end
         end
         
-        function [block] = updateLowerBound(obj, block, thres_stop) 
+        function [block] = updateLowerBound(obj, block) 
             %UPDATELOWERBOUND Update block lower bound at stopping threshold
             assert(~isempty(obj.n1_LB) & ~isempty(obj.n2_LB), 'Context was not set');
             
