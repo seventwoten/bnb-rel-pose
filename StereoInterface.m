@@ -31,8 +31,8 @@ classdef StereoInterface
         function obj = StereoInterface(p, q)
             %BLOCK Construct an instance of this class
             if nargin ~= 0
-                obj.p = p;
-                obj.q = q;
+                obj.p = p ./ sqrt(sum(p.^2, 2));
+                obj.q = q ./ sqrt(sum(q.^2, 2));
                 obj.Np = size(p, 1);
                 obj.Nq = size(q, 1);
             end
