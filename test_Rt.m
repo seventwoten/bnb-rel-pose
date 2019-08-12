@@ -14,7 +14,7 @@ q = scene.view1;
 
 % Experiment parameters
 known_corr = [1,1];    % set to [] for no known correspondences
-possible_matches = []; blkdiag(true, true(scene.N-1)); %set to [] to allow all pairings
+possible_matches = []; %blkdiag(true, true(scene.N-1)); %set to [] to allow all pairings
 
 expt_name  = [];
 if (size(known_corr, 1) == 1); expt_name = '1c_'; end
@@ -64,14 +64,16 @@ fprintf("Number of solutions: %d (Displaying up to 5)\n", size(solutions,2));
 
 num_sol = size(solutions,2);
 for s = 1: min(num_sol, 5)
-    % Report R and t angular error
     R_err = StereoInterface.angles([0,0,1]*solutions(s).aa2mat()', [0,0,1] * scene.cam2_R');
-    t_err = StereoInterface.angles(solutions(s).patches(1).centre_xyz, scene.cam2_xyz);
+    for t = 1: min(numel(solutions(s).patches), 5)
+    % Report R and t angular error
+    t_err = StereoInterface.angles(solutions(s).patches(t).centre_xyz, scene.cam2_xyz);
     fprintf("Solution %d:   aa = [%f %f %f], rpy: [%f %f %f], theta-phi = [%f %f], score: %d, R-error: %f (%f deg), t-error: %f (%f deg)\n", ...
-            s, solutions(s).centre, RCube.R2rpy(solutions(s).aa2mat()), solutions(s).patches(1).centre, solutions(s).LB, ...
+            s, solutions(s).centre, RCube.R2rpy(solutions(s).aa2mat()), solutions(s).patches(t).centre, solutions(s).LB, ...
             R_err, rad2deg(R_err), t_err, rad2deg(t_err));
     % For each R, plot 1 solution matrix representing one possible t
-    figure, imagesc(solutions(s).patches(1).edges_stop);
+    figure, imagesc(solutions(s).patches(t).edges_stop);
+    end
 end
 
 fprintf("Ground truth: aa = [%f %f %f], rpy = [%f %f %f], theta-phi = [%f %f]\n", ...
