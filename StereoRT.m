@@ -95,9 +95,13 @@ classdef StereoRT < StereoInterface
             y_den = sin_beta .* sin(obj.angleMat);
 
             y = y_num ./ y_den;
+            y = y ./ sqrt(sum(y.^2, 3));
 
             x = obj.pairwiseCross(Rp, q);
+            x = x ./ sqrt(sum(x.^2, 3));
+            
             z = cross(x, y);
+            z = z ./ sqrt(sum(z.^2, 3));
 
             cos_beta = cos(asin(sin_beta));
 
