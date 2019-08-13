@@ -103,7 +103,7 @@ classdef StereoRT < StereoInterface
             z = cross(x, y);
             z = z ./ sqrt(sum(z.^2, 3));
 
-            cos_beta = cos(asin(sin_beta));
+            cos_beta = sqrt(1-sin2beta);
 
             normals1 = sin_beta .* z + cos_beta .* x;
             normals2 = sin_beta .* z - cos_beta .* x;
