@@ -125,6 +125,22 @@ classdef RCube < block
                 u = u .* alpha;
             end
         end
+        
+        function [R_align] = align2R(vec1, vec2)
+            % ALIGN2R Find rotation that aligns vec1 to vec2 (both 1x3)
+            v   = cross(vec1, vec2);
+            v_x = [   0, -v(3),  v(2); 
+                   v(3),     0, -v(1); 
+                  -v(2),  v(1),     0];
+
+            c = vec1 * vec2';
+            if abs(c-1) < 1e-8 || abs(c+1) < 1e-8 % No rotation needed
+                R_align = eye(3);
+            else
+                R_align = eye(3) + v_x + (v_x * v_x ./ (1+c));
+            end
+        end
+
     end
 end
 
