@@ -78,17 +78,7 @@ classdef Scene
                 % Find rotation to point camera at centre of scene, [0,0,2]
                 cam_pos_scene = obj.cam2_xyz - obj.cen3d;
                 cam_pos2_unit = cam_pos_scene / sqrt(sum(cam_pos_scene.^2));
-                v   = cross([0,0,1], -cam_pos2_unit);
-                v_x = [   0, -v(3),  v(2); 
-                       v(3),     0, -v(1); 
-                      -v(2),  v(1),     0];
-
-                c = [0,0,1] * -cam_pos2_unit';
-                if abs(c-1) < 1e-8 || abs(c+1) < 1e-8
-                    R = eye(3);
-                else
-                    R = eye(3) + v_x + (v_x * v_x ./ (1+c));
-                end
+                R = RCube.align2R([0,0,1], -cam_pos2_unit);
                 
                 % Final rotation: combine tilt and pointing
                 obj.cam2_R = R * R_tilt;
