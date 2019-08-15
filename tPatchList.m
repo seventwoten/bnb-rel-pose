@@ -53,6 +53,16 @@ classdef tPatchList < tPatch
             subblocks = tPatchList(centres_new, sigma_new, obj.R_tilt);
             
         end
+        
+        function obj = removePatches(obj, mask) 
+            remaining = ~mask;
+            obj.centre = obj.centre(remaining, :);
+            obj.centre_xyz = obj.centre_xyz(remaining, :);
+            obj.UB = obj.UB(remaining, :);
+            obj.LB = obj.LB(remaining, :);
+            obj.thres = obj.thres(remaining, :);
+            obj.Nb = size(obj.thres, 1);
+        end
     end
 end
 
