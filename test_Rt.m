@@ -13,11 +13,11 @@ p = scene.view2;
 q = scene.view1;
 
 % Experiment parameters
-known_corr = [1,1];    % set to [] for no known correspondences
-possible_matches = []; %blkdiag(true, true(scene.N-1)); %set to [] to allow all pairings
+known_corr = [1,1;2,2];    % set to [] for no known correspondences
+possible_matches = []; %blkdiag(true, true, true(scene.N-2)); %set to [] to allow all pairings
 
 expt_name  = [];
-if (size(known_corr, 1) == 1); expt_name = '1c_'; end
+if (size(known_corr, 1) > 0); expt_name = [num2str(size(known_corr, 1)), 'c_']; end
 if (size(possible_matches, 1) ~= 0); expt_name = '1p_'; end
 
 % Set search variables

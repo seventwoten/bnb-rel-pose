@@ -3,6 +3,7 @@ classdef StereoRT < StereoInterface
     %   Detailed explanation goes here
     
     properties
+        n_known = 0        % Number of known correspondences
         p_known
         q_known
         possibleMatches    % Np x Nq mask for including only possible matches
@@ -40,6 +41,7 @@ classdef StereoRT < StereoInterface
             
             % Separate out known correspondence
             if ~isempty(corr_indices)
+                obj.n_known = size(corr_indices, 1);
                 obj.p_known = p(corr_indices(:,1), :);
                 obj.q_known = q(corr_indices(:,2), :);
                 obj.p(corr_indices(:,1), :) = [];
@@ -61,7 +63,7 @@ classdef StereoRT < StereoInterface
             
             if isempty(t_list)
                 % default t range to search
-                obj.t_list = [tPatch([0, 0], pi/2), tPatch([0, pi], pi/2)];
+                obj.t_list = [tPatch([0,pi/2], pi/2), tPatch([pi,pi/2], pi/2)];
             else
                 obj.t_list = t_list;
             end
@@ -127,73 +129,38 @@ classdef StereoRT < StereoInterface
             end
         end
         
-        function [t_list] = wedge2patches(obj, n1_wedge, n2_wedge, min_size)
-            %SETCONTEXT Convert a single wedge into a list of tPatches.
-            %   Align wedge to z-axis, divide into patches, and rotate back.
-            
-            % Normalise and reshape wedge normals to unit row vectors
-            n1_wedge = reshape(n1_wedge, [], 3) ./ sqrt(sum(n1_wedge.^2));
-            n2_wedge = reshape(n2_wedge, [], 3) ./ sqrt(sum(n2_wedge.^2));
-            
-            % Find wedge centre and corner (unit vectors), and wedge width
-            wedge_centre = (n1_wedge + n2_wedge) / 2; 
-            wedge_centre = wedge_centre ./ sqrt(sum(wedge_centre.^2));
-            
-            wedge_corner = cross(wedge_centre, n1_wedge); 
-            wedge_corner = wedge_corner ./ sqrt(sum(wedge_corner.^2));
-            
-            wedge_width  = abs(acos(n1_wedge * -n2_wedge'));
-            
-            % Find rotation to align wedge corner to z-axis
-            v   = cross(wedge_corner, [0,0,1]);
-            v_x = [   0, -v(3),  v(2); 
-                   v(3),     0, -v(1); 
-                  -v(2),  v(1),     0];
-
-            c = wedge_corner * [0,0,1]';
-            if abs(c-1) < 1e-8 || abs(c+1) < 1e-8 % No rotation needed
-                R_align = eye(3);
-            else
-                R_align = eye(3) + v_x + (v_x * v_x ./ (1+c));
-            end
-            
-            % Find wedge_centre coords after aligning wedge corner to z-axis
-            wedge_centre_aln = R_align * wedge_centre';
-            
-            % Find number and size of patches along wedge width
-            if ~exist('min_size', 'var') || isempty(min_size)
-                min_size = max(pi/16, obj.t_half_len_stop);
-            end
-            num_theta      = ceil( wedge_width / (2*min_size) );
-            patch_half_len = min_size;
-            while mod(num_theta, 2) == 0
-                num_theta      = num_theta  / 2;
-                patch_half_len = patch_half_len * 2;
-            end
-            
-            % Find number of patches along wedge length
-            num_phi = ceil( pi / (2*patch_half_len) );
-            
-            % Initialise tPatches aligned to z-axis, then rotate back
-            rtp = tPatch.cartesian2Spherical(wedge_centre_aln(1),wedge_centre_aln(2),wedge_centre_aln(3)); 
-            thetas = rtp(2) + (-floor(num_theta/2):floor(num_theta/2)) * patch_half_len * 2;
-            phis   = rtp(3) + (-floor(num_phi/2)  :floor(num_phi/2))   * patch_half_len * 2;
-            
-            [t,p] = meshgrid(thetas,phis);
-            t_centres = [t(:), p(:)];
-            t_list = tPatchList(t_centres, patch_half_len, R_align');
-        end
-        
         function t_list = updateTList(obj, block, t_list, thres_R)
             % Default case: Return given t_list
-            
+
             % Single known correspondence: Find known p-q wedge, use as new t_list
-            if ~isempty(obj.p_known) && ~isempty(obj.q_known)
+            if obj.n_known ~= 0
                 [n1_wedge, n2_wedge] = obj.getWedges(block, obj.p_known, obj.q_known, thres_R);
-                
-                % If wedge normals are valid, replace t_list with wedge patches
-                if ~all(n1_wedge == 0) && ~all(n2_wedge == 0)
-                    t_list = obj.wedge2patches(n1_wedge, n2_wedge);
+
+                if obj.n_known == 1
+                    % If wedge normals are valid, replace t_list with wedge patches
+                    if wedge.isValid(n1_wedge, n2_wedge)
+                        w = wedge(n1_wedge,n2_wedge);
+                        t_list = w.wedge2tPatches(obj.t_half_len_stop);
+                    end
+                elseif obj.n_known == 2
+                    % Check if wedges are valid
+                    w1_valid = wedge.isValid(n1_wedge(1,1,:), n2_wedge(1,1,:));
+                    w2_valid = wedge.isValid(n1_wedge(2,2,:), n2_wedge(2,2,:));
+
+                    if w1_valid && w2_valid
+                        w1 = wedge(n1_wedge(1,1,:), n2_wedge(1,1,:));
+                        w2 = wedge(n1_wedge(2,2,:), n2_wedge(2,2,:));
+                        t_list = wedge.wedges2intTPatches(w1, w2, obj.t_half_len_stop);
+                        
+                    elseif w1_valid && ~w2_valid % Only w1 is valid
+                        w1 = wedge(n1_wedge(1,1,:), n2_wedge(1,1,:));
+                        t_list = w1.wedge2tPatches(obj.t_half_len_stop);
+                        
+                    elseif ~w1_valid && w2_valid % Only w2 is valid
+                        w2 = wedge(n1_wedge(2,2,:), n2_wedge(2,2,:));
+                        t_list = w2.wedge2tPatches(obj.t_half_len_stop);
+                        
+                    end
                 end
             end
         end
@@ -205,13 +172,18 @@ classdef StereoRT < StereoInterface
             % Update T search list if known correspondence exists
             tlist = obj.updateTList(block, obj.t_list, obj.thres_stop_R);
             
-            % Pass near-epipole check option to T search, only at R stopping threshold
-            st = StereoT(obj.p, obj.q, obj.n1_LB, obj.n2_LB, tlist, obj.t_half_len_stop, obj.epipole_threshold, obj.possibleMatches);
-            fprintf("{\n");
-            st = st.findSolutions(true); % early_stop = true
-            fprintf("}\n");
-            block.LB = st.e_max;
-            block.patches = st.solutions;
+            if ~isempty(tlist)
+                % Pass near-epipole check option to T search, only at R stopping threshold
+                st = StereoT(obj.p, obj.q, obj.n1_LB, obj.n2_LB, tlist, obj.t_half_len_stop, obj.epipole_threshold, obj.possibleMatches);
+                fprintf("{\n");
+                st = st.findSolutions(true); % early_stop = true
+                fprintf("}\n");
+                block.LB = st.e_max;
+                block.patches = st.solutions;
+            else
+                fprintf("Intersection of wedges is empty.\nLower bound: 0\n");
+                block.LB = 0;
+            end
         end
         
         function [block] = updateUpperBound(obj, block)
@@ -220,12 +192,17 @@ classdef StereoRT < StereoInterface
             
             % Update T search list if known correspondence exists
             tlist = obj.updateTList(block, obj.t_list, block.thres);
-            
-            st = StereoT(obj.p, obj.q, obj.n1_UB, obj.n2_UB, tlist, obj.t_half_len_stop, -1, obj.possibleMatches);
-            fprintf("{\n");
-            st = st.findSolutions(true); % early_stop = true
-            fprintf("}\n");
-            block.UB = st.e_max;
+
+            if ~isempty(tlist)
+                st = StereoT(obj.p, obj.q, obj.n1_UB, obj.n2_UB, tlist, obj.t_half_len_stop, -1, obj.possibleMatches);
+                fprintf("{\n");
+                st = st.findSolutions(true); % early_stop = true
+                fprintf("}\n");
+                block.UB = st.e_max;
+            else
+                fprintf("Intersection of wedges is empty.\nUpper bound: 0\n");
+                block.UB = 0;
+            end
         end
         
         function [obj, solutions] = findSolutions(obj, early_stop)
