@@ -89,7 +89,7 @@ for s = 1: size(solutions,2)
     fprintf("rpy: [%d %d %d]\n\n", RCube.R2rpy(R));
     
     % Plot solution matrices
-    figure, imagesc(solutions(s).edges_stop);
+    figure, imagesc(solutions(s).edges_LB);
 end
 
 diary off;

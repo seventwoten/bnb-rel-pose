@@ -52,6 +52,8 @@ classdef StereoT < StereoInterface
             if exist('possible_matches', 'var') && ~isempty(possible_matches)
                 assert(size(possible_matches, 1) == obj.Np && size(possible_matches, 2) == obj.Nq, 'PossibleMatches is the wrong size');
                 obj.possibleMatches = possible_matches;
+            else
+                obj.possibleMatches = true(obj.Np, obj.Nq);
             end
             
             if exist('R_e_max', 'var') && ~isempty(R_e_max)
@@ -60,33 +62,53 @@ classdef StereoT < StereoInterface
         end
         
         function [obj] = setContext(obj, block)
-            obj.angleMat1 = obj.findAnglesToNormals(block.centre_xyz, obj.n1);
-            obj.angleMat2 = obj.findAnglesToNormals(block.centre_xyz, obj.n2);
+            % Use match-list approach: 
+            % Only find angles for parent UB inlier wedges & possibleMatches
+            Nb = size(block.centre_xyz, 1);
+            obj.angleMat1 = zeros(obj.Np, obj.Nq, Nb);
+            obj.angleMat2 = zeros(obj.Np, obj.Nq, Nb);
+            
+            filter = repmat(obj.possibleMatches, 1,1,Nb);
+            if ~isempty(block.parent_edges_UB)
+                filter = filter & block.parent_edges_UB;
+            end
+            
+            for i = 1:Nb
+                % Find angles and assign them back to angleMats 
+                filter_3  = repmat(filter(:,:,i),1,1,3);
+                a1 = obj.angles(block.centre_xyz(i,:), reshape(obj.n1(filter_3), [], 3));
+                a2 = obj.angles(block.centre_xyz(i,:), reshape(obj.n2(filter_3), [], 3));
+                
+                % Set filtered angles to inf (since inlier check uses <)
+                aM1 = inf(obj.Np, obj.Nq);
+                aM2 = inf(obj.Np, obj.Nq);
+                
+                aM1(filter(:,:,i)) = a1;
+                aM2(filter(:,:,i)) = a2;
+                
+                obj.angleMat1(:,:, i) = aM1;
+                obj.angleMat2(:,:, i) = aM2;
+            end
         end
         
         function [block] = updateLowerBound(obj, block) 
             %UPDATELOWERBOUND Update block lower bound at stopping threshold
             assert(~isempty(obj.angleMat1) & ~isempty(obj.angleMat2), 'Context was not set');
             positiveRange = pi/2 + obj.thres_stop_t;
-            block.edges_stop = ((obj.angleMat1 < positiveRange) & (obj.angleMat2 < positiveRange));
+            block.edges_LB = ((obj.angleMat1 < positiveRange) & (obj.angleMat2 < positiveRange));
             
             % Near-epipole check: Remove rows/columns that match too many points
             if obj.check_epipole
-                rows = sum(block.edges_stop,2) >= obj.max_edges_p;
-                cols = sum(block.edges_stop,1) >= obj.max_edges_q;
-                for i = 1:size(block.edges_stop, 3)
-                    block.edges_stop(rows(:,:,i), :, i)= 0;
-                    block.edges_stop(:, cols(:,:,i), i)= 0;
+                rows = sum(block.edges_LB,2) >= obj.max_edges_p;
+                cols = sum(block.edges_LB,1) >= obj.max_edges_q;
+                for i = 1:size(block.edges_LB, 3)
+                    block.edges_LB(rows(:,:,i), :, i)= 0;
+                    block.edges_LB(:, cols(:,:,i), i)= 0;
                 end
             end
             
-            % Filter to include possible matches only
-            if ~isempty(obj.possibleMatches)
-                block.edges_stop = block.edges_stop & obj.possibleMatches;
-            end
-            
-            for i = 1:size(block.edges_stop, 3)
-                block.LB(i) = obj.getMaxBipartiteMatching(block.edges_stop(:,:,i));
+            for i = 1:size(block.edges_LB, 3)
+                block.LB(i) = obj.getMaxBipartiteMatching(block.edges_LB(:,:,i));
             end
         end
         
@@ -97,15 +119,10 @@ classdef StereoT < StereoInterface
             if numel(positiveRange) > 1
                 positiveRange = reshape(positiveRange, 1, 1, numel(positiveRange)); 
             end
-            edges = ((obj.angleMat1 < positiveRange) & (obj.angleMat2 < positiveRange));
+            block.edges_UB = ((obj.angleMat1 < positiveRange) & (obj.angleMat2 < positiveRange));
             
-            % Filter to include possible matches only
-            if ~isempty(obj.possibleMatches)
-                edges = edges & obj.possibleMatches;
-            end
-            
-            for i = 1:size(edges, 3)
-                block.UB(i) = obj.getMaxBipartiteMatching(edges(:,:,i));
+            for i = 1:size(block.edges_UB, 3)
+                block.UB(i) = obj.getMaxBipartiteMatching(block.edges_UB(:,:,i));
             end
         end
         
@@ -221,7 +238,13 @@ classdef StereoT < StereoInterface
                     sols(i) = tPatch(blk_cache.centre(n,:),blk_cache.sigma);
                     sols(i).LB = blk_cache.LB(n);
                     sols(i).UB = blk_cache.UB(n);
-                    sols(i).edges_stop = blk_cache.edges_stop(:,:,n);
+                    sols(i).edges_LB = blk_cache.edges_LB(:,:,n);
+                    if ~isempty(blk_cache.edges_UB)
+                        sols(i).edges_UB = blk_cache.edges_UB(:,:,n);
+                    end
+                    if ~isempty(blk_cache.parent_edges_UB)
+                        sols(i).parent_edges_UB = blk_cache.parent_edges_UB(:,:,n);
+                    end
                 end
                 if ~isempty(sols)
                     obj.solutions = [obj.solutions sols];

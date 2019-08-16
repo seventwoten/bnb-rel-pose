@@ -82,7 +82,7 @@ tic;
 delta      = 0;             % minimum angular error in Rp and q 
 thres_stop = 1/64 * pi;     % stop at this patch size
 R_half_len = 1/64 * pi;     % find T given an R block of this size
-t_half_len = 1/4 * pi;      % search within an initial T patch of this size 
+t_half_len = 1/2 * pi;      % search within an initial T patch of this size
 
 % Do T search for a particular R block (centred at ground truth)
 R_block = RCube(axis_angle, R_half_len);
@@ -102,7 +102,7 @@ fprintf("Displaying up to 5:\n");
 for s = 1: min(size(solutions,2), 5)
     fprintf("Solution %d: [%d %d], sigma: %d pi, score: %d\n", s, solutions(s).centre, solutions(s).sigma/pi, solutions(s).LB);
     % Plot solution matrices
-    figure, imagesc(solutions(s).edges_stop);
+    figure, imagesc(solutions(s).edges_LB);
 end
 
 diary off;

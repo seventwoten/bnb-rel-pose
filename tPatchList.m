@@ -7,7 +7,7 @@ classdef tPatchList < tPatch
     end
     
     methods
-        function obj = tPatchList(c, s, R)
+        function obj = tPatchList(c, s, R, p_edges_UB)
             %TPATCHLIST Construct an instance of this class
             %   c is a matrix formed by concatenating patches centres (Nb x 2)
             %   s is the patch half-length shared by all patches
@@ -18,11 +18,13 @@ classdef tPatchList < tPatch
             if ~exist('R', 'var')
                 R = [];
             end
-            obj = obj@tPatch(c, s, R);
+            if ~exist('p_edges_UB', 'var')
+                p_edges_UB = [];
+            end
+            obj = obj@tPatch(c, s, R, p_edges_UB);
             obj.Nb = size(c, 1);
             obj.LB = zeros(obj.Nb, 1);
             obj.UB = zeros(obj.Nb, 1);
-            
         end
         
         function [subblocks] = subdivide(obj, mask)
@@ -50,7 +52,10 @@ classdef tPatchList < tPatch
             centres_new = parent_blocks + sigma_new * shifts;
             centres_new = reshape(centres_new, 2, [])';
 
-            subblocks = tPatchList(centres_new, sigma_new, obj.R_tilt);
+            parent_edges_UB = obj.edges_UB(:, :, mask);
+            parent_edges_UB = repelem(parent_edges_UB, 1, 1, 4);
+            
+            subblocks = tPatchList(centres_new, sigma_new, obj.R_tilt, parent_edges_UB);
             
         end
         

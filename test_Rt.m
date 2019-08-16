@@ -72,7 +72,7 @@ for s = 1: min(num_sol, 5)
             s, solutions(s).centre, RCube.R2rpy(solutions(s).aa2mat()), solutions(s).patches(t).centre, solutions(s).LB, ...
             R_err, rad2deg(R_err), t_err, rad2deg(t_err));
     % For each R, plot 1 solution matrix representing one possible t
-    figure, imagesc(solutions(s).patches(t).edges_stop);
+    figure, imagesc(solutions(s).patches(t).edges_LB);
     end
 end
 

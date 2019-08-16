@@ -46,15 +46,15 @@ classdef StereoR < StereoInterface
         function [block] = updateLowerBound(obj, block, thres_stop) 
             %UPDATELOWERBOUND Set lower bound at stopping threshold
             assert(~isempty(obj.angleMat), 'Context was not set');
-            block.edges_stop = obj.angleMat < thres_stop + 2*obj.delta;
-            block.LB = obj.getMaxBipartiteMatching(block.edges_stop);
+            block.edges_LB = obj.angleMat < thres_stop + 2*obj.delta;
+            block.LB = obj.getMaxBipartiteMatching(block.edges_LB);
         end
         
         function [block] = updateUpperBound(obj, block)
             %SETUPPERBOUND Set upper bound at sqrt(3) * sigma threshold
             assert(~isempty(obj.angleMat), 'Context was not set');
-            edges = obj.angleMat < block.thres + 2*obj.delta;
-            block.UB = obj.getMaxBipartiteMatching(edges);
+            block.edges_UB = obj.angleMat < block.thres + 2*obj.delta;
+            block.UB = obj.getMaxBipartiteMatching(block.edges_UB);
         end
         
         function [obj, solutions] = findSolutions(obj)

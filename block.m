@@ -8,8 +8,9 @@ classdef block
         UB       % block upper bound
         LB       % block lower bound
         
-        thres       % threshold for comparison with stopping threshold
-        edges_stop  % edges matrix of possible matches at stopping threshold
+        thres       % threshold for computing upper bound
+        edges_LB    % edges matrix of possible matches at stopping threshold/LB
+        edges_UB    % edges matrix of possible matches at threshold/UB
     end
     
     methods

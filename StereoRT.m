@@ -37,6 +37,8 @@ classdef StereoRT < StereoInterface
             if exist('possible_matches', 'var') && ~isempty(possible_matches)
                 assert(size(possible_matches, 1) == obj.Np && size(possible_matches, 2) == obj.Nq, 'PossibleMatches is the wrong size');
                 obj.possibleMatches = possible_matches;
+            else
+                obj.possibleMatches = true(obj.Np, obj.Nq);
             end
             
             % Separate out known correspondence

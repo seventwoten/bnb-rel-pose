@@ -4,10 +4,12 @@ classdef tPatch < block
         centre_xyz % cartesian representation of patch centre
         R_tilt     % Rotation around origin to reposition the patch on the 
                    % sphere surface, used if patch is not aligned to long/lat lines
+                   
+        parent_edges_UB % Edge matrix marking inlier wedges of parent block
     end
     
     methods
-        function obj = tPatch(c, s, R)
+        function obj = tPatch(c, s, R, p_edges_UB)
             %TPATCH Construct an instance of this class
             if nargin == 0
                 c = [];
@@ -31,6 +33,10 @@ classdef tPatch < block
                 obj.R_tilt = R;
                 obj = obj.rotate(R);
             end
+            
+            if exist('p_edges_UB','var') && ~isempty(p_edges_UB)
+                obj.parent_edges_UB = p_edges_UB;
+            end
         end
         
         function [subblocks] = subdivide(obj)
@@ -47,7 +53,7 @@ classdef tPatch < block
             centre_new = obj.centre + sigma_new * shifts;
             
             for c = size(centre_new, 1):-1:1
-                subblocks(c) = tPatch(centre_new(c,:), sigma_new, obj.R_tilt);
+                subblocks(c) = tPatch(centre_new(c,:), sigma_new, obj.R_tilt, obj.edges_UB);
             end
             
         end
