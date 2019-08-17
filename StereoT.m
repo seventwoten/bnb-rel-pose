@@ -16,10 +16,11 @@ classdef StereoT < StereoInterface
         angleMat1
         angleMat2
         possibleMatches % Np x Nq mask for including only possible matches
+        R_e_max         % Current e_max of R outer loop
     end
     
     methods
-        function obj = StereoT(p, q, n1, n2, t_list, t_half_len_stop, epipole_threshold, possible_matches)
+        function obj = StereoT(p, q, n1, n2, t_list, t_half_len_stop, epipole_threshold, possible_matches, R_e_max)
             %STEREOT Construct an instance of this class
             %   (pass in [] to use default values)
             obj = obj@StereoInterface(p, q);
@@ -53,6 +54,9 @@ classdef StereoT < StereoInterface
                 obj.possibleMatches = possible_matches;
             end
             
+            if exist('R_e_max', 'var') && ~isempty(R_e_max)
+                obj.R_e_max = R_e_max;
+            end
         end
         
         function [obj] = setContext(obj, block)
@@ -150,7 +154,7 @@ classdef StereoT < StereoInterface
             %BNBLIST Do branch and bound, processing blocks in parallel using tPatchList
             
             % Set up variables
-            max_matches = min(obj.Np, obj.Nq);
+            max_UB = min(obj.Np, obj.Nq);
             blk = initList;
 
             obj.e_max = 0;
@@ -172,7 +176,7 @@ classdef StereoT < StereoInterface
                 fprintf(['Lower bound: [', repmat('%d ',[1,min(numel(blk.LB), 20)]), '] \n'], blk.LB(1: min(numel(blk.LB), 20))); 
                 
                 % Compute block upper bound at sqrt(3)-sigma threshold
-                if blk.sigma <= obj.t_half_len_stop % blk.LB == max_matches ||
+                if blk.sigma <= obj.t_half_len_stop % blk.LB == max_UB ||
                     blk.UB = blk.LB;
                 else
                     blk = obj.updateUpperBound(blk);
@@ -189,9 +193,13 @@ classdef StereoT < StereoInterface
                     add_solution(blk.LB == obj.e_max) = true;
                 end
                 
+                % Update max_UB
+                max_UB = max(blk.UB);
+                
                 % Discard or subdivide/terminate current blocks
                 blk_cache = blk;
-                surviving_blocks =  blk.UB > 0 & blk.UB >= obj.e_max;
+
+                surviving_blocks =  blk.LB < blk.UB & blk.UB >= obj.e_max;
                 if blk.sigma > obj.t_half_len_stop
                     if any(surviving_blocks)
                         blk = blk.subdivide(surviving_blocks);
@@ -219,8 +227,8 @@ classdef StereoT < StereoInterface
                     obj.solutions = [obj.solutions sols];
                 end
                 
-                % early_stop option: Terminate early with this solution if e_max reaches max_matches
-                if early_stop && obj.e_max == max_matches
+                % early_stop option: Terminate early with this solution if e_max reaches max_UB
+                if early_stop && obj.e_max == max_UB || max_UB < obj.R_e_max
                     break;
                 end
                 

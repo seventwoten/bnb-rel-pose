@@ -33,7 +33,7 @@ t_list       = [tPatch([0,pi/2], pi/2), tPatch([pi,pi/2], pi/2)];
 
 delta         = 0.00873;      % minimum angular error in Rp and q
 thres_stop_R  = 0;            % Stop when cube half-length drops below this value
-thres_stop_t  = 1/256 * pi;   % Stop when patch half-length drops below this value
+thres_stop_t  = 1/512 * pi;   % Stop when patch half-length drops below this value
 epipole_thres = 0.7;          % Reject points that match more than this fraction of points
 early_stop    = true;         % Set to true to return first viable solution
 
