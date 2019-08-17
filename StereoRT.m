@@ -174,7 +174,7 @@ classdef StereoRT < StereoInterface
             
             if ~isempty(tlist)
                 % Pass near-epipole check option to T search, only at R stopping threshold
-                st = StereoT(obj.p, obj.q, obj.n1_LB, obj.n2_LB, tlist, obj.t_half_len_stop, obj.epipole_threshold, obj.possibleMatches);
+                st = StereoT(obj.p, obj.q, obj.n1_LB, obj.n2_LB, tlist, obj.t_half_len_stop, obj.epipole_threshold, obj.possibleMatches, obj.e_max);
                 fprintf("{\n");
                 st = st.findSolutions(true); % early_stop = true
                 fprintf("}\n");
@@ -194,7 +194,7 @@ classdef StereoRT < StereoInterface
             tlist = obj.updateTList(block, obj.t_list, block.thres);
 
             if ~isempty(tlist)
-                st = StereoT(obj.p, obj.q, obj.n1_UB, obj.n2_UB, tlist, obj.t_half_len_stop, -1, obj.possibleMatches);
+                st = StereoT(obj.p, obj.q, obj.n1_UB, obj.n2_UB, tlist, obj.t_half_len_stop, -1, obj.possibleMatches, obj.e_max);
                 fprintf("{\n");
                 st = st.findSolutions(true); % early_stop = true
                 fprintf("}\n");
