@@ -42,23 +42,23 @@ classdef StereoInterface
             %BNB Do branch and bound
             
             % Set up variables
-            max_matches = min(obj.Np, obj.Nq);
+            max_UB = min(obj.Np, obj.Nq);
 
-            queue = cell(1,max_matches); % Set up one block queue per no. of matches 
-            queue{max_matches} = initList;
+            % Set up priority queue to sort blocks by upper bounds
+            queue = cell(1,max_UB);
+            queue{max_UB} = initList;
 
             obj.e_max = 0;
-            i = max_matches;
             obj.solutions = [];
 
             iter = 1;
             
-            while ~isempty(i)
+            while ~isempty(max_UB)
                 add_solution = false;
                 
-                % dequeue block from front of queue with largest max_matches 
-                blk = queue{i}(1);
-                queue{i}(1) = [];
+                % dequeue block from front of queue with largest max_UB
+                blk = queue{max_UB}(1);
+                queue{max_UB}(1) = [];
 
                 % Do any necessary computation before checking bounds
                 obj = obj.setContext(blk);
@@ -70,7 +70,7 @@ classdef StereoInterface
                 fprintf("Lower bound: %d\n", blk.LB);
 
                 % Compute block upper bound at sqrt(3)-sigma threshold
-                if blk.LB == max_matches || blk.thres <= thres_stop
+                if blk.LB == max_UB || blk.thres <= thres_stop
                     blk.UB = blk.LB;
                 else
                     blk = obj.updateUpperBound(blk);
@@ -89,12 +89,12 @@ classdef StereoInterface
                     % After updating e_max, check queue for discardable blocks
                     % (parentUB < e_max)
                     fprintf("Discarded blocks below %d!\n", obj.e_max);
-                    queue([1:obj.e_max-1]) = {[]};
+                    queue(1:obj.e_max-1) = {[]};
 
                 end
 
                 % Discard this block, or subdivide/terminate
-                if blk.UB > 0 && blk.UB >= obj.e_max
+                if blk.LB < blk.UB && blk.UB >= obj.e_max
                     if blk.thres > thres_stop
                         fprintf("Continue!\n");
                         queue{blk.UB} = [queue{blk.UB} blk.subdivide()];
@@ -111,13 +111,13 @@ classdef StereoInterface
                     obj.solutions = [obj.solutions blk];
                 end
                 
-                % early_stop option: Terminate early with this solution if e_max reaches max_matches
-                if early_stop && obj.e_max == max_matches
+                % early_stop option: Terminate early with this solution if e_max reaches max_UB
+                if early_stop && obj.e_max == max_UB
                     break;
                 end
                 
-                i = find(~cellfun(@isempty,queue), 1, 'last');
-                fprintf("next i: %d\n\n", i);
+                max_UB = find(~cellfun(@isempty,queue), 1, 'last');
+                fprintf("next i: %d\n\n", max_UB);
                 iter = iter + 1;
 
             end
