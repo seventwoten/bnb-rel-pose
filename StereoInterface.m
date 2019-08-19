@@ -94,7 +94,7 @@ classdef StereoInterface
                 end
 
                 % Discard this block, or subdivide/terminate
-                if blk.LB < blk.UB && blk.UB >= obj.e_max
+                if blk.LB < blk.UB && blk.UB > obj.e_max
                     if blk.thres > thres_stop
                         fprintf("Continue!\n");
                         queue{blk.UB} = [queue{blk.UB} blk.subdivide()];
