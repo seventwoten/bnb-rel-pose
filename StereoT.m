@@ -185,7 +185,7 @@ classdef StereoT < StereoInterface
 
                 % Update e_max
                 max_LB = max(blk.LB);
-                if max_LB > 0 && max_LB >= obj.e_max
+                if max_LB > 0 && max_LB > obj.e_max
                     fprintf("\tReplaced e_max %d with %d.", obj.e_max, max_LB);
                     obj.e_max = max_LB;
                     
@@ -199,7 +199,7 @@ classdef StereoT < StereoInterface
                 % Discard or subdivide/terminate current blocks
                 blk_cache = blk;
 
-                surviving_blocks =  blk.LB < blk.UB & blk.UB >= obj.e_max;
+                surviving_blocks =  blk.LB < blk.UB & blk.UB > obj.e_max & blk.UB > obj.R_e_max;
                 if blk.sigma > obj.t_half_len_stop
                     if any(surviving_blocks)
                         blk = blk.subdivide(surviving_blocks);
