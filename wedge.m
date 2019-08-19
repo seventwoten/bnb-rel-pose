@@ -71,7 +71,7 @@ classdef wedge < handle
             wedge_centre_aln = R_align *  obj.getCentre()';
             
             % Find number and size of patches along wedge width
-            min_size = max(pi/16, min_size);
+            min_size = max(pi/32, min_size);
             num_theta      = ceil( obj.getWidth() / (2*min_size) );
             patch_half_len = min_size;
             
