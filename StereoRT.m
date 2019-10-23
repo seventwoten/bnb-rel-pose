@@ -233,6 +233,9 @@ classdef StereoRT < StereoInterface
             for row = 1 : n1
                 out(row,:,:) = cross(repmat(v1(row, :), n2, 1), v2);
             end
+            
+            % Normalise cross products
+            out = out ./ sqrt(sum(out.^2, 3));
         end
         
     end
