@@ -13,7 +13,7 @@ p = scene.view2;
 q = scene.view1;
 
 % Experiment parameters
-known_corr = [1,1;2,2];    % To restrict t-search. Set to [] for no known correspondences
+known_corr = [1,1];        % To restrict t-search. Set to [] for no known correspondences
 possible_matches = [];     % To filter possible matches. Set to [] to allow all pairings. 
                            % blkdiag(true, true, true(scene.N-2)); 
 
