@@ -13,12 +13,13 @@ p = scene.view2;
 q = scene.view1;
 
 % Experiment parameters
-known_corr = [1,1;2,2];    % set to [] for no known correspondences
-possible_matches = []; %blkdiag(true, true, true(scene.N-2)); %set to [] to allow all pairings
+known_corr = [1,1;2,2];    % To restrict t-search. Set to [] for no known correspondences
+possible_matches = [];     % To filter possible matches. Set to [] to allow all pairings. 
+                           % blkdiag(true, true, true(scene.N-2)); 
 
 expt_name  = [];
-if (size(known_corr, 1) > 0); expt_name = [num2str(size(known_corr, 1)), 'c_']; end
-if (size(possible_matches, 1) ~= 0); expt_name = '1p_'; end
+if (size(known_corr, 1) > 0); expt_name = [num2str(size(known_corr, 1)), 'r_']; end
+if (size(possible_matches, 1) ~= 0); expt_name = '1f_'; end
 
 % Set search variables
 R_list       = [RCube([-3/8 * pi, -3/8 * pi, 0], pi/8), RCube([    -pi/8, -3/8 * pi, 0], pi/8), ...
